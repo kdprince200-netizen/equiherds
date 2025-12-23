@@ -1,0 +1,47 @@
+@import "tailwindcss";
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+  /* Update this to match your logo's primary color */
+  --primary:  #0a2d85;
+  --primary-gradient: linear-gradient(to bottom, #3d91dc, #0a2d85);
+  --secondary: #ed8a3c;
+}
+.primary {
+  color: var(--primary);
+}
+.bg-primary {
+  background: linear-gradient(to bottom, #3d91dc, #0a2d85);
+}
+.bg-secondary {
+  background-color: var(--secondary);
+}
+.secondary {
+  color: var(--secondary);
+}
+.text-white {
+  color: #fff !important;
+}
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-brand: var(--primary);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+    --primary: #2563eb;
+  }
+}
+
+body {
+  background: var(--foreground);
+  color: var(--background);
+  font-family: Arial, Helvetica, sans-serif;
+}
+.w-\[305px\] {  width: 285px; }
