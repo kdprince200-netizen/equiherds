@@ -1,13 +1,13 @@
+import { NextResponse } from 'next/server';
+import connectDB from '../../../../lib/db';
+import Subscription from '../../../models/Subscription';
+
 /**
  * @swagger
- * tags:
- *   - name: Subscription
- *     description: Subscription management APIs
- *
  * /api/subscriptions/{id}:
  *   get:
  *     summary: Get a subscription by ID
- *     tags: [Subscription]
+ *     tags: [Subscriptions]
  *     parameters:
  *       - in: path
  *         name: id
@@ -17,22 +17,43 @@
  *         description: Subscription ID
  *     responses:
  *       200:
- *         description: Subscription found
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                 subscription:
- *                   $ref: '#/components/schemas/Subscription'
+ *         description: Subscription details
  *       404:
  *         description: Subscription not found
- *
+ *       500:
+ *         description: Server error
+ */
+export async function GET(request, { params }) {
+  try {
+    await connectDB();
+    
+    const subscription = await Subscription.findById(params.id);
+    
+    if (!subscription) {
+      return NextResponse.json(
+        { success: false, error: 'Subscription not found' },
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json({
+      success: true,
+      data: subscription
+    });
+  } catch (error) {
+    return NextResponse.json(
+      { success: false, error: error.message },
+      { status: 500 }
+    );
+  }
+}
+
+/**
+ * @swagger
+ * /api/subscriptions/{id}:
  *   put:
- *     summary: Update a subscription by ID
- *     tags: [Subscription]
+ *     summary: Update a subscription
+ *     tags: [Subscriptions]
  *     parameters:
  *       - in: path
  *         name: id
@@ -45,50 +66,58 @@
  *       content:
  *         application/json:
  *           schema:
- *             type: object
- *             properties:
- *               name:
- *                 type: string
- *                 example: "Premium Plan Updated"
- *               price:
- *                 type: number
- *                 example: 129.99
- *               discount:
- *                 type: number
- *                 example: 15
- *               duration:
- *                 type: number
- *                 example: 60
- *               description:
- *                 type: object
- *                 example: {"No of Horses": "10", "No of Trainer": "5", "No Stables": "3"}
- *               details:
- *                 type: string
- *                 example: "Premium subscription with advanced features and priority support"
- *               offermonth:
- *                 type: number
- *                 example: 3
- *               discountoffermonth:
- *                 type: number
- *                 example: 20
+ *             $ref: '#/components/schemas/SubscriptionInput'
  *     responses:
  *       200:
  *         description: Subscription updated successfully
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                 subscription:
- *                   $ref: '#/components/schemas/Subscription'
  *       404:
  *         description: Subscription not found
- *
+ *       500:
+ *         description: Server error
+ */
+export async function PUT(request, { params }) {
+  try {
+    await connectDB();
+    
+    const body = await request.json();
+
+    const subscription = await Subscription.findByIdAndUpdate(
+      params.id,
+      { $set: body },
+      { new: true, runValidators: true }
+    );
+
+    if (!subscription) {
+      return NextResponse.json(
+        { success: false, error: 'Subscription not found' },
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json({
+      success: true,
+      data: subscription
+    });
+  } catch (error) {
+    if (error.name === 'ValidationError') {
+      return NextResponse.json(
+        { success: false, error: error.message },
+        { status: 400 }
+      );
+    }
+    return NextResponse.json(
+      { success: false, error: error.message },
+      { status: 500 }
+    );
+  }
+}
+
+/**
+ * @swagger
+ * /api/subscriptions/{id}:
  *   delete:
- *     summary: Delete a subscription by ID
- *     tags: [Subscription]
+ *     summary: Delete a subscription
+ *     tags: [Subscriptions]
  *     parameters:
  *       - in: path
  *         name: id
@@ -99,187 +128,33 @@
  *     responses:
  *       200:
  *         description: Subscription deleted successfully
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
  *       404:
  *         description: Subscription not found
+ *       500:
+ *         description: Server error
  */
-
-import connectDB from "@/lib/db";
-import Subscription from "@/models/Subscription";
-import { NextResponse } from "next/server";
-
-async function parseRequestBody(req) {
-  const contentType = req.headers.get("content-type") || "";
+export async function DELETE(request, { params }) {
   try {
-    if (contentType.includes("application/json")) {
-      return await req.json();
-    }
-    if (
-      contentType.includes("application/x-www-form-urlencoded") ||
-      contentType.includes("multipart/form-data")
-    ) {
-      const form = await req.formData();
-      const data = {};
-      for (const [key, value] of form.entries()) {
-        data[key] = typeof value === "string" ? value : value.name || "";
-      }
-      return data;
-    }
-    const raw = await req.text();
-    return raw ? JSON.parse(raw) : {};
-  } catch (err) {
-    throw new Error("Invalid request body. Ensure valid JSON or form data.");
-  }
-}
+    await connectDB();
+    
+    const subscription = await Subscription.findByIdAndDelete(params.id);
 
-export async function GET(req, { params }) {
-  await connectDB();
-  try {
-    const { id } = await params;
-    
-    if (!id) {
-      return NextResponse.json({ message: "Missing subscription id" }, { status: 400 });
-    }
-    
-    const subscription = await Subscription.findById(id);
-    
     if (!subscription) {
-      return NextResponse.json({ message: "Subscription not found" }, { status: 404 });
+      return NextResponse.json(
+        { success: false, error: 'Subscription not found' },
+        { status: 404 }
+      );
     }
-    
-    return NextResponse.json(
-      { message: "Subscription fetched successfully", subscription },
-      { status: 200 }
-    );
+
+    return NextResponse.json({
+      success: true,
+      message: 'Subscription deleted successfully'
+    });
   } catch (error) {
     return NextResponse.json(
-      { message: error.message || "Failed to fetch subscription" },
-      { status: 400 }
+      { success: false, error: error.message },
+      { status: 500 }
     );
   }
 }
 
-export async function PUT(req, { params }) {
-  await connectDB();
-  try {
-    const { id } = await params;
-    const body = await parseRequestBody(req);
-    const { name, price, discount, duration, description, details, offermonth, discountoffermonth } = body;
-
-    if (!id) {
-      return NextResponse.json({ message: "Missing subscription id" }, { status: 400 });
-    }
-
-    // Validate data types if provided
-    if (price !== undefined && (typeof price !== "number" || price < 0)) {
-      return NextResponse.json(
-        { message: "Price must be a positive number" },
-        { status: 400 }
-      );
-    }
-    
-    if (duration !== undefined && (typeof duration !== "number" || duration <= 0)) {
-      return NextResponse.json(
-        { message: "Duration must be a positive number" },
-        { status: 400 }
-      );
-    }
-    
-    if (discount !== undefined && (typeof discount !== "number" || discount < 0)) {
-      return NextResponse.json(
-        { message: "Discount must be a positive number" },
-        { status: 400 }
-      );
-    }
-
-    // Validate description if provided
-    if (description !== undefined && typeof description !== "object") {
-      return NextResponse.json(
-        { message: "Description must be an object" },
-        { status: 400 }
-      );
-    }
-    
-    // Validate details if provided
-    if (details !== undefined && typeof details !== "string") {
-      return NextResponse.json(
-        { message: "Details must be a string" },
-        { status: 400 }
-      );
-    }
-    
-    // Validate offer fields if provided
-    if (offermonth !== undefined && (typeof offermonth !== "number" || offermonth < 0)) {
-      return NextResponse.json(
-        { message: "Offer month must be a non-negative number" },
-        { status: 400 }
-      );
-    }
-    
-    if (discountoffermonth !== undefined && (typeof discountoffermonth !== "number" || discountoffermonth < 0 || discountoffermonth > 100)) {
-      return NextResponse.json(
-        { message: "Discount offer month must be a number between 0 and 100" },
-        { status: 400 }
-      );
-    }
-
-    const updateData = {};
-    if (name !== undefined) updateData.name = name;
-    if (price !== undefined) updateData.price = price;
-    if (discount !== undefined) updateData.discount = discount;
-    if (duration !== undefined) updateData.duration = duration;
-    if (description !== undefined) updateData.description = description;
-    if (details !== undefined) updateData.details = details;
-    if (offermonth !== undefined) updateData.offermonth = offermonth;
-    if (discountoffermonth !== undefined) updateData.discountoffermonth = discountoffermonth;
-
-    const subscription = await Subscription.findByIdAndUpdate(id, updateData, { new: true });
-    
-    if (!subscription) {
-      return NextResponse.json({ message: "Subscription not found" }, { status: 404 });
-    }
-    
-    return NextResponse.json(
-      { message: "Subscription updated successfully", subscription },
-      { status: 200 }
-    );
-  } catch (error) {
-    return NextResponse.json(
-      { message: error.message || "Failed to update subscription" },
-      { status: 400 }
-    );
-  }
-}
-
-export async function DELETE(req, { params }) {
-  await connectDB();
-  try {
-    const { id } = await params;
-    
-    if (!id) {
-      return NextResponse.json({ message: "Missing subscription id" }, { status: 400 });
-    }
-    
-    const subscription = await Subscription.findByIdAndDelete(id);
-    
-    if (!subscription) {
-      return NextResponse.json({ message: "Subscription not found" }, { status: 404 });
-    }
-    
-    return NextResponse.json(
-      { message: "Subscription deleted successfully" },
-      { status: 200 }
-    );
-  } catch (error) {
-    return NextResponse.json(
-      { message: error.message || "Failed to delete subscription" },
-      { status: 400 }
-    );
-  }
-}
