@@ -1571,7 +1571,7 @@ export default function AdminDashboard() {
               {/* User Header */}
               <div className="flex items-center gap-4 pb-6 border-b border-gray-200">
                 <div className="w-20 h-20 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white text-2xl font-bold">
-                  {selectedUser.name.split(' ').map((n: string) => n[0]).join('')}
+                  {selectedUser.name.split(' ').map((n) => n[0]).join('')}
                 </div>
                 <div className="flex-1">
                   <h4 className="text-xl font-bold text-gray-900">{selectedUser.name}</h4>

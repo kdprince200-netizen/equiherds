@@ -30,7 +30,7 @@
     "**/*.mts",
     "**/*.ts",
     "**/*.tsx"
-, "src/i18n/index.js", "src/i18n/local/index.js"  ],
+, "src/i18n/index.js", "src/i18n/local/index.js", "src/app/admin-dashboard/page.jsx"  ],
   "exclude": [
     "node_modules"
   ]
