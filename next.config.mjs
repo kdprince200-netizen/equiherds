@@ -48,6 +48,8 @@ const nextConfig = {
     maxInactiveAge: 25 * 1000,
     pagesBufferLength: 2,
   },
+  // Turbopack configuration (empty to use webpack instead)
+  turbopack: {},
 };
 
 export default nextConfig;
