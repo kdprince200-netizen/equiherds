@@ -53,15 +53,27 @@ export default function GoogleLoginButton({ onSuccess }) {
 
               if (loginResponse.ok && loginData.token) {
                 // Store JWT token for our app
-                updateLocalStorageData({ token: loginData.token });
-                toast.success("Logged in successfully!");
-                if (onSuccess) {
-                  onSuccess();
+                const saved = updateLocalStorageData({ token: loginData.token });
+                if (saved) {
+                  toast.success("Logged in successfully!");
+                  if (onSuccess) {
+                    onSuccess();
+                  }
+                  // Verify token is actually saved before navigation
+                  const verifyToken = () => {
+                    const storedToken = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+                    if (storedToken === loginData.token) {
+                      router.push("/profile");
+                    } else {
+                      // Retry after a short delay if token wasn't found
+                      setTimeout(verifyToken, 50);
+                    }
+                  };
+                  // Start verification after a short delay to ensure localStorage write completes
+                  setTimeout(verifyToken, 200);
+                } else {
+                  toast.error("Failed to save authentication token. Please try again.");
                 }
-                // Small delay to ensure localStorage is persisted before navigation
-                setTimeout(() => {
-                  router.push("/profile");
-                }, 100);
               } else {
                 toast.error(loginData.message || "Failed to complete login");
               }

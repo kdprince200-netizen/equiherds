@@ -148,11 +148,23 @@ export default function LoginPage() {
         if (pendingLoginData) {
           toast.success("OTP verified. Logging you in...");
           if (pendingLoginData.token) {
-            updateLocalStorageData({ token: pendingLoginData.token });
-            // Small delay to ensure localStorage is persisted
-            setTimeout(() => {
-              router.push("/profile");
-            }, 100);
+            const saved = updateLocalStorageData({ token: pendingLoginData.token });
+            if (saved) {
+              // Verify token is actually saved before navigation
+              const verifyToken = () => {
+                const storedToken = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+                if (storedToken === pendingLoginData.token) {
+                  router.push("/profile");
+                } else {
+                  // Retry after a short delay if token wasn't found
+                  setTimeout(verifyToken, 50);
+                }
+              };
+              // Start verification after a short delay to ensure localStorage write completes
+              setTimeout(verifyToken, 200);
+            } else {
+              toast.error("Failed to save authentication token. Please try again.");
+            }
           }
           setShowOTPModal(false);
           setPendingLoginData(null);
@@ -328,12 +340,24 @@ export default function LoginPage() {
 
         // Non-seller: proceed normally
         if (res?.token) {
-          updateLocalStorageData({ token: res.token });
-          toast.success(res?.message || "Logged in successfully");
-          // Small delay to ensure localStorage is persisted before navigation
-          setTimeout(() => {
-            router.push("/profile");
-          }, 100);
+          const saved = updateLocalStorageData({ token: res.token });
+          if (saved) {
+            toast.success(res?.message || "Logged in successfully");
+            // Verify token is actually saved and wait a bit longer for persistence
+            const verifyToken = () => {
+              const storedToken = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+              if (storedToken === res.token) {
+                router.push("/profile");
+              } else {
+                // Retry after a short delay if token wasn't found
+                setTimeout(verifyToken, 50);
+              }
+            };
+            // Start verification after a short delay to ensure localStorage write completes
+            setTimeout(verifyToken, 200);
+          } else {
+            toast.error("Failed to save authentication token. Please try again.");
+          }
         } else {
           toast.error("No token received from server");
         }
