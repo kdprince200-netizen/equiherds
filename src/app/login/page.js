@@ -1,8 +1,10 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { toast } from "react-hot-toast";
 import { postRequest, uploadFile } from "@/service";
+import { updateLocalStorageData } from "../utils/localStorage";
 import TopSection from "../components/topSection";
 import OTPModal from "../components/OTPModal";
 import GoogleLoginButton from "../components/GoogleLoginButton";
@@ -12,6 +14,7 @@ import OTPVerificationModal from "../components/OTPVerificationModal";
 import NewPasswordModal from "../components/NewPasswordModal";
 
 export default function LoginPage() {
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState("login");
 
   // Login form state
@@ -145,11 +148,14 @@ export default function LoginPage() {
         if (pendingLoginData) {
           toast.success("OTP verified. Logging you in...");
           if (pendingLoginData.token) {
-            localStorage.setItem("token", pendingLoginData.token);
+            updateLocalStorageData({ token: pendingLoginData.token });
+            // Small delay to ensure localStorage is persisted
+            setTimeout(() => {
+              router.push("/profile");
+            }, 100);
           }
           setShowOTPModal(false);
           setPendingLoginData(null);
-          window.location.href = "/profile";
           return;
         }
       } else {
@@ -322,10 +328,15 @@ export default function LoginPage() {
 
         // Non-seller: proceed normally
         if (res?.token) {
-          localStorage.setItem("token", res.token);
+          updateLocalStorageData({ token: res.token });
+          toast.success(res?.message || "Logged in successfully");
+          // Small delay to ensure localStorage is persisted before navigation
+          setTimeout(() => {
+            router.push("/profile");
+          }, 100);
+        } else {
+          toast.error("No token received from server");
         }
-        toast.success(res?.message || "Logged in successfully");
-        window.location.href = "/profile";
       } else {
         toast.error(res?.message || "Login failed");
       }

@@ -58,12 +58,23 @@ export default function Navbar() {
     };
     checkToken();
 
-    // Sync across tabs
+    // Sync across tabs (storage event fires when localStorage changes in other tabs)
     const onStorage = (e) => {
       if (e.key === "token") checkToken();
     };
+    
+    // Listen for custom event (fires when localStorage changes in same tab)
+    const onLocalStorageUpdate = () => {
+      checkToken();
+    };
+    
     window.addEventListener("storage", onStorage);
-    return () => window.removeEventListener("storage", onStorage);
+    window.addEventListener("localStorageDataUpdate", onLocalStorageUpdate);
+    
+    return () => {
+      window.removeEventListener("storage", onStorage);
+      window.removeEventListener("localStorageDataUpdate", onLocalStorageUpdate);
+    };
   }, []);
 
   // Close Services and Market on outside click / Escape

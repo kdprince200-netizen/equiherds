@@ -1,9 +1,12 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { signIn, getSession } from "next-auth/react";
 import { toast } from "react-hot-toast";
+import { updateLocalStorageData } from "../utils/localStorage";
 
 export default function GoogleLoginButton({ onSuccess }) {
+  const router = useRouter();
   const handleGoogleLogin = async () => {
     try {
       console.log("Starting Google login...");
@@ -50,13 +53,15 @@ export default function GoogleLoginButton({ onSuccess }) {
 
               if (loginResponse.ok && loginData.token) {
                 // Store JWT token for our app
-                localStorage.setItem("token", loginData.token);
+                updateLocalStorageData({ token: loginData.token });
                 toast.success("Logged in successfully!");
                 if (onSuccess) {
                   onSuccess();
                 }
-                // Redirect to profile page
-                window.location.href = "/profile";
+                // Small delay to ensure localStorage is persisted before navigation
+                setTimeout(() => {
+                  router.push("/profile");
+                }, 100);
               } else {
                 toast.error(loginData.message || "Failed to complete login");
               }
