@@ -1,6 +1,15 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import ConditionalLayout from "../components/layout/ConditionalLayout";
+import "antd/dist/reset.css";
+import { Toaster } from "react-hot-toast";
+import AppShell from "./components/AppShell";
+import { ConfigProvider, App } from "antd";
+import { antdTheme, suppressAntdWarnings } from "../lib/antd-theme";
+import AntdWarningBoundary from "../lib/error-boundary";
+import "../lib/suppress-warnings";
+import AuthSessionProvider from "./components/SessionProvider"; 
+import AutoSubscriptionManager from "./components/AutoSubscriptionManager";
+
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -13,25 +22,33 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata = {
-  title: "GrapplersHub - Connect. Train. Excel.",
-  description: "The ultimate platform for grapplers worldwide. Find expert coaches, join elite clubs, and access premium training resources.",
+  title: "Equiherds",
+  description: "Equiherds is a platform for horse owners to find the best horses for sale and to sell their horses.",
 };
 
 export default function RootLayout({ children }) {
+  // Suppress Ant Design warnings
+  suppressAntdWarnings();
+
   return (
     <html lang="en">
       <head>
-        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" />
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="true" />
-        <link href="https://fonts.googleapis.com/css2?family=Pacifico&display=swap" rel="stylesheet" />
+        <link rel="icon" href="/logo.jpeg" />
       </head>
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        <ConditionalLayout>
-          {children}
-        </ConditionalLayout>
+      <body suppressHydrationWarning={true} className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col`}>
+        <AuthSessionProvider>
+          <AntdWarningBoundary>
+            <ConfigProvider theme={antdTheme}>
+              <App>
+                <AppShell>
+                  {children}
+                </AppShell>
+                <AutoSubscriptionManager />
+                <Toaster position="top-right" />
+              </App>
+            </ConfigProvider>
+          </AntdWarningBoundary>
+        </AuthSessionProvider>
       </body>
     </html>
   );

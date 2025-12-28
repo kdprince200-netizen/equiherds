@@ -1,144 +1,451 @@
-import { NextResponse } from 'next/server';
-import connectDB from '../../../lib/db';
-import User from '../../models/User.js';
-import bcrypt from 'bcryptjs';
-
 /**
  * @swagger
+ * tags:
+ *   - name: User
+ *     description: User management APIs
+ *
  * /api/users:
  *   get:
  *     summary: Get all users
- *     tags: [Users]
+ *     tags: [User]
+ *     parameters:
+ *       - in: query
+ *         name: id
+ *         required: false
+ *         schema:
+ *           type: string
+ *         description: If provided, returns a single user by id
+ *       - in: query
+ *         name: accountType
+ *         required: false
+ *         schema:
+ *           type: string
+ *           enum: [buyer, seller, superAdmin]
+ *         description: Filter users by account type
  *     responses:
  *       200:
- *         description: List of all users
+ *         description: List of users
  *         content:
  *           application/json:
  *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                 data:
- *                   type: array
+ *               oneOf:
+ *                 - type: array
  *                   items:
  *                     $ref: '#/components/schemas/User'
- *       500:
- *         description: Server error
- */
-export async function GET(request) {
-  try {
-    await connectDB();
-    
-    const { searchParams } = new URL(request.url);
-    const accountType = searchParams.get('accountType');
-    const page = parseInt(searchParams.get('page')) || 1;
-    const limit = parseInt(searchParams.get('limit')) || 10;
-    const skip = (page - 1) * limit;
-
-    const query = accountType ? { accountType } : {};
-    
-    const users = await User.find(query)
-      .select('-password -confirmPassword')
-      .skip(skip)
-      .limit(limit)
-      .sort({ createdAt: -1 });
-    
-    const total = await User.countDocuments(query);
-
-    return NextResponse.json({
-      success: true,
-      data: users,
-      pagination: {
-        page,
-        limit,
-        total,
-        pages: Math.ceil(total / limit)
-      }
-    });
-  } catch (error) {
-    return NextResponse.json(
-      { success: false, error: error.message },
-      { status: 500 }
-    );
-  }
-}
-
-/**
- * @swagger
- * /api/users:
+ *                 - $ref: '#/components/schemas/User'
+ *
  *   post:
- *     summary: Create a new user
- *     tags: [Users]
+ *     summary: Register a new user
+ *     tags: [User]
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/UserInput'
+ *             type: object
+ *             required:
+ *               - firstName
+ *               - lastName
+ *               - email
+ *               - accountType
+ *               - phoneNumber
+ *               - password
+ *             properties:
+ *               firstName:
+ *                 type: string
+ *               lastName:
+ *                 type: string
+ *               email:
+ *                 type: string
+ *               accountType:
+ *                 type: string
+ *                 enum: [buyer, seller, superAdmin]
+ *               phoneNumber:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *               companyName:
+ *                 type: string
+ *               brandImage:
+ *                 type: string
+ *               companyInfo:
+ *                 type: string
+ *               companyLicence:
+ *                 type: string
+ *               street:
+ *                 type: string
+ *               city:
+ *                 type: string
+ *               country:
+ *                 type: string
+ *               zipcode:
+ *                 type: string
+ *               address1:
+ *                 type: string
+ *               address2:
+ *                 type: string
  *     responses:
  *       201:
- *         description: User created successfully
- *       400:
- *         description: Validation error
- *       500:
- *         description: Server error
+ *         description: User created
+ *
+ *   put:
+ *     summary: Update a user by ID
+ *     tags: [User]
+ *     parameters:
+ *       - in: query
+ *         name: id
+ *         required: false
+ *         schema:
+ *           type: string
+ *         description: User id to update (can also be provided in body)
+ *     requestBody:
+ *       required: false
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               id:
+ *                 type: string
+ *               firstName:
+ *                 type: string
+ *               lastName:
+ *                 type: string
+ *               email:
+ *                 type: string
+ *               accountType:
+ *                 type: string
+ *                 enum: [buyer, seller, superAdmin]
+ *               phoneNumber:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *               companyName:
+ *                 type: string
+ *               brandImage:
+ *                 type: string
+ *               companyInfo:
+ *                 type: string
+ *               companyLicence:
+ *                 type: string
+ *               street:
+ *                 type: string
+ *               city:
+ *                 type: string
+ *               country:
+ *                 type: string
+ *               zipcode:
+ *                 type: string
+ *               address1:
+ *                 type: string
+ *               address2:
+ *                 type: string
+ *               status:
+ *                 type: string
+ *                 enum: [active, inactive, suspended]
+ *               subscriptionStatus:
+ *                 type: string
+ *                 enum: [Active, Expired, Pending]
+ *               subscriptionExpiry:
+ *                 type: string
+ *               payments:
+ *                 type: array
+ *                 items:
+ *                   type: object
+ *                   properties:
+ *                     paymentId:
+ *                       type: string
+ *                     date:
+ *                       type: string
+ *                       format: date-time
+ *                     amount:
+ *                       type: number
+ *                     currency:
+ *                       type: string
+ *                     status:
+ *                       type: string
+ *                     subscriptionId:
+ *                       type: string
+ *                     subscriptionStatus:
+ *                       type: string
+ *                     subscriptionExpiry:
+ *                       type: string
+ *     responses:
+ *       200:
+ *         description: User updated
+ *
+ *   delete:
+ *     summary: Delete a user by ID
+ *     tags: [User]
+ *     parameters:
+ *       - in: query
+ *         name: id
+ *         required: false
+ *         schema:
+ *           type: string
+ *         description: User id to delete (can also be provided in body)
+ *     requestBody:
+ *       required: false
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               id:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: User deleted
  */
-export async function POST(request) {
+
+import connectDB from "@/lib/db";
+import User from "@/models/User";
+import { NextResponse } from "next/server";
+import bcrypt from "bcryptjs";
+
+async function parseRequestBody(req) {
+  const contentType = req.headers.get("content-type") || "";
   try {
-    await connectDB();
+    if (contentType.includes("application/json")) {
+      return await req.json();
+    }
+    if (
+      contentType.includes("application/x-www-form-urlencoded") ||
+      contentType.includes("multipart/form-data")
+    ) {
+      const form = await req.formData();
+      const data = {};
+      for (const [key, value] of form.entries()) {
+        data[key] = typeof value === "string" ? value : value.name || "";
+      }
+      return data;
+    }
+    const raw = await req.text();
+    return raw ? JSON.parse(raw) : {};
+  } catch (err) {
+    throw new Error("Invalid request body. Ensure valid JSON or form data.");
+  }
+}
+
+export async function GET(req) {
+  await connectDB();
+  try {
+    const { searchParams } = new URL(req.url);
+    const id = searchParams.get("id");
+    const accountType = searchParams.get("accountType");
     
-    const body = await request.json();
-    
-    // Validate password match
-    if (body.password !== body.confirmPassword) {
+    if (id) {
+      const user = await User.findById(id).select("-password");
+      if (!user) {
+        return NextResponse.json({ message: "User not found" }, { status: 404 });
+      }
       return NextResponse.json(
-        { success: false, error: 'Passwords do not match' },
-        { status: 400 }
+        { message: "User fetched successfully", user },
+        { status: 200 }
       );
     }
-
-    // Check if user already exists
-    const existingUser = await User.findOne({ email: body.email });
-    if (existingUser) {
-      return NextResponse.json(
-        { success: false, error: 'User with this email already exists' },
-        { status: 400 }
-      );
-    }
-
-    // Hash password before saving
-    const hashedPassword = await bcrypt.hash(body.password, 10);
     
-    // Create user object with hashed password
-    const userData = {
-      ...body,
-      password: hashedPassword,
-      confirmPassword: hashedPassword // Store hashed version for confirmPassword too
-    };
-
-    const user = new User(userData);
-    await user.save();
-
-    const userResponse = user.toObject();
-    delete userResponse.password;
-    delete userResponse.confirmPassword;
-
+    // Build query based on filters
+    let query = {};
+    if (accountType) {
+      query.accountType = accountType;
+    }
+    
+    const users = await User.find(query).select("-password");
     return NextResponse.json(
-      { success: true, data: userResponse },
-      { status: 201 }
+      { message: "Users fetched successfully", users },
+      { status: 200 }
     );
   } catch (error) {
-    if (error.name === 'ValidationError') {
-      return NextResponse.json(
-        { success: false, error: error.message },
-        { status: 400 }
-      );
-    }
     return NextResponse.json(
-      { success: false, error: error.message },
-      { status: 500 }
+      { message: error.message || "Failed to fetch users" },
+      { status: 400 }
     );
   }
 }
 
+export async function POST(req) {
+  await connectDB();
+  try {
+    const body = await parseRequestBody(req);
+    console.log("Received body in API:", body); // Debug log
+    
+    // If ID is provided, this is an update operation
+    if (body.id) {
+      const existingUser = await User.findById(body.id);
+      if (!existingUser) {
+        return NextResponse.json(
+          { message: "User not found" },
+          { status: 404 }
+        );
+      }
+      
+      // Update only the provided fields
+      const updateData = {};
+      if (body.stripeCustomerId !== undefined) updateData.stripeCustomerId = body.stripeCustomerId;
+      if (body.defaultPaymentMethodId !== undefined) updateData.defaultPaymentMethodId = body.defaultPaymentMethodId;
+      if (body.autoRenewalEnabled !== undefined) updateData.autoRenewalEnabled = body.autoRenewalEnabled;
+      if (body.subscriptionStatus !== undefined) updateData.subscriptionStatus = body.subscriptionStatus;
+      if (body.subscriptionExpiry !== undefined) updateData.subscriptionExpiry = body.subscriptionExpiry;
+      if (body.subscriptionId !== undefined) updateData.subscriptionId = body.subscriptionId;
+      if (body.subscriptionName !== undefined) updateData.subscriptionName = body.subscriptionName;
+      if (body.subscriptionPrice !== undefined) updateData.subscriptionPrice = body.subscriptionPrice;
+      if (body.subscriptionDuration !== undefined) updateData.subscriptionDuration = body.subscriptionDuration;
+      
+      // Update the user
+      const updatedUser = await User.findByIdAndUpdate(body.id, updateData, { new: true }).select("-password");
+      return NextResponse.json(
+        { message: "User updated successfully", user: updatedUser },
+        { status: 200 }
+      );
+    }
+    
+    // This is a new user creation - validate required fields
+    if (!body.firstName || !body.lastName || !body.email || !body.accountType) {
+      return NextResponse.json(
+        { message: "firstName, lastName, email, and accountType are required for new users" },
+        { status: 400 }
+      );
+    }
+    
+    // Validate seller-specific fields if account type is seller
+    if (body.accountType === 'seller') {
+      if (!body.companyName || !body.companyInfo || !body.brandImage || !body.vatNo || !body.stripeAccountId) {
+        return NextResponse.json(
+          { message: "Company name, company info, brand image, VAT number, and Stripe account ID are required for sellers" },
+          { status: 400 }
+        );
+      }
+    }
+    
+    // Set default status for new users
+    if (!body.status) {
+      body.status = 'active';
+    }
+    
+    const user = new User(body);
+    await user.save();
+    const safeUser = user.toJSON();
+    return NextResponse.json(
+      { message: "User created successfully", user: safeUser },
+      { status: 200 }
+    );
+  } catch (error) {
+    console.log("Error creating/updating user:", error); // Debug log
+    return NextResponse.json(
+      { message: error.message || "Failed to create/update user" },
+      { status: 400 }
+    );
+  }
+}
+
+export async function PUT(req) {
+  await connectDB();
+  try {
+    const { searchParams } = new URL(req.url);
+    const queryId = searchParams.get("id");
+    const body = await parseRequestBody(req);
+    const {
+      id: bodyId,
+      firstName,
+      lastName,
+      email,
+      accountType,
+      phoneNumber,
+      password,
+      companyName,
+      brandImage,
+      companyInfo,
+      companyLicence,
+      vatNo,
+      stripeAccountId,
+      street,
+      city,
+      country,
+      zipcode,
+      address1,
+      address2,
+      status,
+      subscriptionStatus,
+      subscriptionExpiry,
+      payments,
+      // billing controls
+      autoRenewalEnabled,
+      stripeCustomerId,
+      defaultPaymentMethodId,
+    } = body;
+
+    const id = queryId || bodyId;
+    if (!id) {
+      return NextResponse.json({ message: "Missing user id" }, { status: 400 });
+    }
+
+    const updateData = {};
+    if (firstName !== undefined) updateData.firstName = firstName;
+    if (lastName !== undefined) updateData.lastName = lastName;
+    if (email !== undefined) updateData.email = email;
+    if (accountType !== undefined) updateData.accountType = accountType;
+    if (phoneNumber !== undefined) updateData.phoneNumber = phoneNumber;
+    if (password !== undefined) {
+      // Let the pre-save hook handle password hashing
+      updateData.password = password;
+    }
+    if (companyName !== undefined) updateData.companyName = companyName;
+    if (brandImage !== undefined) updateData.brandImage = brandImage;
+    if (companyInfo !== undefined) updateData.companyInfo = companyInfo;
+    if (companyLicence !== undefined) updateData.companyLicence = companyLicence;
+    if (vatNo !== undefined) updateData.vatNo = vatNo;
+    if (stripeAccountId !== undefined) updateData.stripeAccountId = stripeAccountId;
+    if (street !== undefined) updateData.street = street;
+    if (city !== undefined) updateData.city = city;
+    if (country !== undefined) updateData.country = country;
+    if (zipcode !== undefined) updateData.zipcode = zipcode;
+    if (address1 !== undefined) updateData.address1 = address1;
+    if (address2 !== undefined) updateData.address2 = address2;
+    if (status !== undefined) updateData.status = status;
+    if (subscriptionStatus !== undefined) updateData.subscriptionStatus = subscriptionStatus;
+    if (subscriptionExpiry !== undefined) updateData.subscriptionExpiry = subscriptionExpiry;
+    if (payments !== undefined) updateData.payments = payments;
+    if (autoRenewalEnabled !== undefined) updateData.autoRenewalEnabled = autoRenewalEnabled;
+    if (stripeCustomerId !== undefined) updateData.stripeCustomerId = stripeCustomerId;
+    if (defaultPaymentMethodId !== undefined) updateData.defaultPaymentMethodId = defaultPaymentMethodId;
+
+    const user = await User.findByIdAndUpdate(id, updateData, { new: true }).select("-password");
+    return NextResponse.json(
+      { message: "User updated successfully", user },
+      { status: 200 }
+    );
+  } catch (error) {
+    return NextResponse.json(
+      { message: error.message || "Failed to update user" },
+      { status: 400 }
+    );
+  }
+}
+
+export async function DELETE(req) {
+  await connectDB();
+  try {
+    const { searchParams } = new URL(req.url);
+    let id = searchParams.get("id");
+    if (!id) {
+      try {
+        const body = await parseRequestBody(req);
+        id = body?.id;
+      } catch (_) {}
+    }
+    if (!id) {
+      return NextResponse.json({ message: "Missing user id" }, { status: 400 });
+    }
+    await User.findByIdAndDelete(id);
+    return NextResponse.json(
+      { message: "User deleted successfully" },
+      { status: 200 }
+    );
+  } catch (error) {
+    return NextResponse.json(
+      { message: error.message || "Failed to delete user" },
+      { status: 400 }
+    );
+  }
+}
