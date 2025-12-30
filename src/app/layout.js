@@ -7,7 +7,6 @@ import { ConfigProvider, App } from "antd";
 import { antdTheme, suppressAntdWarnings } from "../lib/antd-theme";
 import AntdWarningBoundary from "../lib/error-boundary";
 import "../lib/suppress-warnings";
-import AuthSessionProvider from "./components/SessionProvider"; 
 import AutoSubscriptionManager from "./components/AutoSubscriptionManager";
 import RemoveNextJSIndicator from "./components/RemoveNextJSIndicator";
 
@@ -84,20 +83,18 @@ export default function RootLayout({ children }) {
         />
       </head>
       <body suppressHydrationWarning={true} className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col`}>
-        <AuthSessionProvider>
-          <AntdWarningBoundary>
-            <ConfigProvider theme={antdTheme}>
-              <App>
-                <AppShell>
-                  {children}
-                </AppShell>
-                <AutoSubscriptionManager />
-                <Toaster position="top-right" />
-                <RemoveNextJSIndicator />
-              </App>
-            </ConfigProvider>
-          </AntdWarningBoundary>
-        </AuthSessionProvider>
+        <AntdWarningBoundary>
+          <ConfigProvider theme={antdTheme}>
+            <App>
+              <AppShell>
+                {children}
+              </AppShell>
+              <AutoSubscriptionManager />
+              <Toaster position="top-right" />
+              <RemoveNextJSIndicator />
+            </App>
+          </ConfigProvider>
+        </AntdWarningBoundary>
       </body>
     </html>
   );

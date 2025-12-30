@@ -1,78 +1,10 @@
 "use client";
 
-import { signIn, getSession } from "next-auth/react";
 import { toast } from "react-hot-toast";
 
 export default function GoogleLoginButton({ onSuccess }) {
   const handleGoogleLogin = async () => {
-    try {
-      console.log("Starting Google login...");
-      
-      const result = await signIn("google", {
-        redirect: false,
-        callbackUrl: "/profile",
-      });
-
-      console.log("Google login result:", result);
-
-      if (result?.error) {
-        console.error("Google login error:", result.error);
-        toast.error(`Google login failed: ${result.error}`);
-      } else if (result?.ok) {
-        // After successful Google OAuth, create/verify user in our database
-        try {
-          const session = await getSession();
-          if (session?.user?.email) {
-            // First, ensure user exists in our database
-            const userResponse = await fetch('/api/auth/google-user', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-            });
-
-            const userData = await userResponse.json();
-
-            if (userResponse.ok) {
-              // Now get JWT token from unified login
-              const loginResponse = await fetch('/api/auth/unified-login', {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                  email: session.user.email,
-                  authMethod: 'google'
-                }),
-              });
-
-              const loginData = await loginResponse.json();
-
-              if (loginResponse.ok && loginData.token) {
-                // Store JWT token for our app
-                localStorage.setItem("token", loginData.token);
-                toast.success("Logged in successfully!");
-                if (onSuccess) {
-                  onSuccess();
-                }
-                // Redirect to profile page
-                window.location.href = "/profile";
-              } else {
-                toast.error(loginData.message || "Failed to complete login");
-              }
-            } else {
-              toast.error(userData.message || "Failed to create user account");
-            }
-          }
-        } catch (apiError) {
-          console.error("API call error:", apiError);
-          toast.error("Failed to complete login process");
-        }
-      }
-    } catch (error) {
-      console.error("Google login exception:", error);
-      toast.error(`An error occurred during Google login: ${error.message}`);
-    }
+    toast.error("Google login is currently disabled. Please use email and password to login.");
   };
 
   return (

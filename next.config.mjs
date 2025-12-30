@@ -43,13 +43,18 @@ const nextConfig = {
   experimental: {
     reactCompiler: false,
   },
+  // Permanently disable Next.js dev overlay and indicators
+  devIndicators: {
+    buildActivity: false,
+    buildActivityPosition: 'bottom-right',
+  },
+  // Disable React Fast Refresh overlay
+  reactStrictMode: false,
   // Suppress specific warnings
   onDemandEntries: {
     maxInactiveAge: 25 * 1000,
     pagesBufferLength: 2,
   },
-  // Turbopack configuration (empty to use webpack instead)
-  turbopack: {},
 };
 
 export default nextConfig;
