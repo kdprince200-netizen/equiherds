@@ -9,6 +9,7 @@ import AntdWarningBoundary from "../lib/error-boundary";
 import "../lib/suppress-warnings";
 import AuthSessionProvider from "./components/SessionProvider"; 
 import AutoSubscriptionManager from "./components/AutoSubscriptionManager";
+import RemoveNextJSIndicator from "./components/RemoveNextJSIndicator";
 
 
 const geistSans = Geist({
@@ -34,6 +35,53 @@ export default function RootLayout({ children }) {
     <html lang="en">
       <head>
         <link rel="icon" href="/logo.jpeg" />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                function removeNextJSIndicators() {
+                  // Remove by ID
+                  ['__next-build-watcher', '__next-dev-overlay'].forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) el.remove();
+                  });
+                  
+                  // Remove by selectors
+                  document.querySelectorAll('[data-nextjs-dialog], [data-nextjs-toast], [data-nextjs-dialog-overlay], [data-nextjs-icon]').forEach(el => el.remove());
+                  
+                  // Remove fixed position indicators
+                  document.querySelectorAll('div').forEach(div => {
+                    const style = window.getComputedStyle(div);
+                    const id = div.id || '';
+                    const className = div.className || '';
+                    if ((id.includes('__next') || id.includes('nextjs') || className.includes('nextjs')) && 
+                        style.position === 'fixed' && (style.bottom === '0px' || style.right === '0px')) {
+                      div.remove();
+                    }
+                  });
+                }
+                
+                // Run immediately
+                removeNextJSIndicators();
+                
+                // Run on DOM ready
+                if (document.readyState === 'loading') {
+                  document.addEventListener('DOMContentLoaded', removeNextJSIndicators);
+                } else {
+                  removeNextJSIndicators();
+                }
+                
+                // Set up observer
+                if (typeof MutationObserver !== 'undefined') {
+                  new MutationObserver(removeNextJSIndicators).observe(document.body, {
+                    childList: true,
+                    subtree: true
+                  });
+                }
+              })();
+            `,
+          }}
+        />
       </head>
       <body suppressHydrationWarning={true} className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col`}>
         <AuthSessionProvider>
@@ -45,6 +93,7 @@ export default function RootLayout({ children }) {
                 </AppShell>
                 <AutoSubscriptionManager />
                 <Toaster position="top-right" />
+                <RemoveNextJSIndicator />
               </App>
             </ConfigProvider>
           </AntdWarningBoundary>

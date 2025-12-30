@@ -1,12 +1,9 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { signIn, getSession } from "next-auth/react";
 import { toast } from "react-hot-toast";
-import { updateLocalStorageData } from "../utils/localStorage";
 
 export default function GoogleLoginButton({ onSuccess }) {
-  const router = useRouter();
   const handleGoogleLogin = async () => {
     try {
       console.log("Starting Google login...");
@@ -53,27 +50,13 @@ export default function GoogleLoginButton({ onSuccess }) {
 
               if (loginResponse.ok && loginData.token) {
                 // Store JWT token for our app
-                const saved = updateLocalStorageData({ token: loginData.token });
-                if (saved) {
-                  toast.success("Logged in successfully!");
-                  if (onSuccess) {
-                    onSuccess();
-                  }
-                  // Verify token is actually saved before navigation
-                  const verifyToken = () => {
-                    const storedToken = typeof window !== "undefined" ? localStorage.getItem("token") : null;
-                    if (storedToken === loginData.token) {
-                      router.push("/profile");
-                    } else {
-                      // Retry after a short delay if token wasn't found
-                      setTimeout(verifyToken, 50);
-                    }
-                  };
-                  // Start verification after a short delay to ensure localStorage write completes
-                  setTimeout(verifyToken, 200);
-                } else {
-                  toast.error("Failed to save authentication token. Please try again.");
+                localStorage.setItem("token", loginData.token);
+                toast.success("Logged in successfully!");
+                if (onSuccess) {
+                  onSuccess();
                 }
+                // Redirect to profile page
+                window.location.href = "/profile";
               } else {
                 toast.error(loginData.message || "Failed to complete login");
               }

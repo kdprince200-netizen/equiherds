@@ -15,7 +15,7 @@ import News from "./News";
 import HourseMarket from "./HourseMarket";
 import MarketPlace from "./MarketPlace";
 import Sponsored from "./Sponsored";
-import { getUserData, clearToken } from "../utils/localStorage";
+import { getUserData } from "../utils/localStorage";
 
 
 
@@ -71,7 +71,11 @@ export default function ProfilePage() {
 
   const tabs = getTabs();
   const handleLogout = () => {
-    clearToken();
+    try {
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("token");
+      }
+    } catch {}
     window.location.href = "/login";
   };
 

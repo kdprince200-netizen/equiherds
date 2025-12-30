@@ -46,4 +46,53 @@ body {
 }
 .w-\[305px\] {  width: 285px; }
 
+/* Permanently hide ALL Next.js development indicators and error overlays */
+#__next-build-watcher,
+#__next-dev-overlay,
+[data-nextjs-dialog],
+[data-nextjs-toast],
+.nextjs-toast-errors-parent,
+[data-nextjs-dialog-overlay],
+iframe[src*="__nextjs"],
+div[data-nextjs-toast],
+div[data-nextjs-dialog],
+div[id*="__next"],
+div[id*="nextjs"],
+div[class*="nextjs"],
+div[class*="__next"],
+svg[data-nextjs-icon],
+img[data-nextjs-icon],
+button[data-nextjs-icon],
+a[data-nextjs-icon] {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  position: absolute !important;
+  left: -9999px !important;
+  width: 0 !important;
+  height: 0 !important;
+  overflow: hidden !important;
+}
+
+/* Hide Next.js error overlay and any floating indicators */
+body > div[data-nextjs-dialog-overlay],
+body > div[id*="__next"],
+body > div[class*="nextjs"],
+body > iframe[src*="__nextjs"] {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+/* Hide any Next.js icon/badge in corner */
+div[style*="position: fixed"][style*="bottom"],
+div[style*="position: fixed"][style*="right"],
+div[style*="z-index: 9999"],
+div[style*="z-index: 99999"] {
+  display: none !important;
+  visibility: hidden !important;
+}
+
 

@@ -1,10 +1,8 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
 import { toast } from "react-hot-toast";
 import { postRequest, uploadFile } from "@/service";
-import { updateLocalStorageData } from "../utils/localStorage";
 import TopSection from "../components/topSection";
 import OTPModal from "../components/OTPModal";
 import GoogleLoginButton from "../components/GoogleLoginButton";
@@ -14,7 +12,6 @@ import OTPVerificationModal from "../components/OTPVerificationModal";
 import NewPasswordModal from "../components/NewPasswordModal";
 
 export default function LoginPage() {
-  const router = useRouter();
   const [activeTab, setActiveTab] = useState("login");
 
   // Login form state
@@ -148,26 +145,11 @@ export default function LoginPage() {
         if (pendingLoginData) {
           toast.success("OTP verified. Logging you in...");
           if (pendingLoginData.token) {
-            const saved = updateLocalStorageData({ token: pendingLoginData.token });
-            if (saved) {
-              // Verify token is actually saved before navigation
-              const verifyToken = () => {
-                const storedToken = typeof window !== "undefined" ? localStorage.getItem("token") : null;
-                if (storedToken === pendingLoginData.token) {
-                  router.push("/profile");
-                } else {
-                  // Retry after a short delay if token wasn't found
-                  setTimeout(verifyToken, 50);
-                }
-              };
-              // Start verification after a short delay to ensure localStorage write completes
-              setTimeout(verifyToken, 200);
-            } else {
-              toast.error("Failed to save authentication token. Please try again.");
-            }
+            localStorage.setItem("token", pendingLoginData.token);
           }
           setShowOTPModal(false);
           setPendingLoginData(null);
+          window.location.href = "/profile";
           return;
         }
       } else {
@@ -340,27 +322,10 @@ export default function LoginPage() {
 
         // Non-seller: proceed normally
         if (res?.token) {
-          const saved = updateLocalStorageData({ token: res.token });
-          if (saved) {
-            toast.success(res?.message || "Logged in successfully");
-            // Verify token is actually saved and wait a bit longer for persistence
-            const verifyToken = () => {
-              const storedToken = typeof window !== "undefined" ? localStorage.getItem("token") : null;
-              if (storedToken === res.token) {
-                router.push("/profile");
-              } else {
-                // Retry after a short delay if token wasn't found
-                setTimeout(verifyToken, 50);
-              }
-            };
-            // Start verification after a short delay to ensure localStorage write completes
-            setTimeout(verifyToken, 200);
-          } else {
-            toast.error("Failed to save authentication token. Please try again.");
-          }
-        } else {
-          toast.error("No token received from server");
+          localStorage.setItem("token", res.token);
         }
+        toast.success(res?.message || "Logged in successfully");
+        window.location.href = "/profile";
       } else {
         toast.error(res?.message || "Login failed");
       }
