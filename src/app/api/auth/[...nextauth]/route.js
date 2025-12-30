@@ -71,9 +71,30 @@ export const authOptions = {
 
 // Initialize NextAuth for Auth.js v5
 // Auth.js v5 exports handlers object with GET and POST methods
-const { handlers } = NextAuth(authOptions);
+const handler = NextAuth(authOptions);
 
-// Export GET and POST handlers directly
-export const { GET, POST } = handlers;
+// Export GET and POST handlers
+// Handle different possible return structures
+let GET, POST;
+
+if (handler?.handlers) {
+  // Standard Auth.js v5 structure
+  GET = handler.handlers.GET;
+  POST = handler.handlers.POST;
+} else if (handler?.GET && handler?.POST) {
+  // Direct GET/POST methods
+  GET = handler.GET;
+  POST = handler.POST;
+} else if (typeof handler === 'function') {
+  // Handler is a function (older pattern)
+  GET = handler;
+  POST = handler;
+} else {
+  // Fallback: use handler as is
+  GET = handler;
+  POST = handler;
+}
+
+export { GET, POST };
 
 
