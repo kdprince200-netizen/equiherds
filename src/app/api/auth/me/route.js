@@ -1,54 +1,36 @@
 import { NextResponse } from "next/server";
-import { authOptions } from "../[...nextauth]/route";
-import { cookies } from "next/headers";
 
 export async function GET(req) {
   try {
-    // Get session using cookies in App Router (Auth.js v5 compatible)
-    const cookieStore = await cookies();
-    let getServerSession;
+    // Call the session endpoint internally using Next.js fetch
+    // This works in the same runtime environment
+    const baseUrl = process.env.NEXTAUTH_URL || 
+                   process.env.AUTH_URL || 
+                   req.nextUrl.origin;
     
-    try {
-      // Try importing from next-auth (v5)
-      const nextAuth = await import("next-auth");
-      getServerSession = nextAuth.getServerSession;
-      
-      // If not found, try next-auth/next
-      if (!getServerSession) {
-        const nextAuthNext = await import("next-auth/next");
-        getServerSession = nextAuthNext.getServerSession;
-      }
-    } catch (e) {
-      // Fallback: try next-auth/next
-      const nextAuthNext = await import("next-auth/next");
-      getServerSession = nextAuthNext.getServerSession;
-    }
+    const sessionUrl = `${baseUrl}/api/auth/session`;
     
-    if (!getServerSession) {
-      // If getServerSession is not available, return empty session
-      return NextResponse.json(
-        { user: null, expires: null },
-        { status: 200 }
-      );
-    }
-    
-    const session = await getServerSession({
-      req: {
-        headers: {
-          cookie: cookieStore.toString(),
-        },
+    // Use fetch to call the session endpoint
+    // Next.js fetch works internally in serverless environments
+    const sessionResponse = await fetch(sessionUrl, {
+      method: 'GET',
+      headers: {
+        cookie: req.headers.get('cookie') || '',
       },
-      ...authOptions,
+      // Use cache to avoid unnecessary calls
+      cache: 'no-store',
     });
     
-    if (!session) {
-      return NextResponse.json(
-        { user: null, expires: null },
-        { status: 200 }
-      );
+    if (sessionResponse.ok) {
+      const session = await sessionResponse.json();
+      return NextResponse.json(session, { status: 200 });
     }
-
-    return NextResponse.json(session, { status: 200 });
+    
+    // If session endpoint fails, return empty session
+    return NextResponse.json(
+      { user: null, expires: null },
+      { status: 200 }
+    );
   } catch (error) {
     console.error("Error fetching session at /api/auth/me:", error);
     // Return empty session instead of error to prevent client-side issues
