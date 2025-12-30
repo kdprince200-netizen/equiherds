@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { toast } from "react-hot-toast";
+import Image from "next/image";
 import { postRequest, uploadFile } from "@/service";
 import TopSection from "../components/topSection";
 import OTPModal from "../components/OTPModal";
@@ -457,7 +458,7 @@ export default function LoginPage() {
       {/* Loading Overlay */}
       {(isLoginLoading || isRegisterLoading) && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[9999]">
-          <img src="/loading.gif" alt="Loading" width={160} height={160} />
+          <Image src="/loading.gif" alt="Loading" width={160} height={160} />
         </div>
       )}
       
