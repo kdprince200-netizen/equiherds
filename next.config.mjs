@@ -33,16 +33,16 @@ const nextConfig = {
     
     return config;
   },
-  // Turbopack configuration (required in Next.js 16 when using webpack config)
-  turbopack: {},
   // Suppress console warnings in production
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production' ? {
       exclude: ['error', 'warn']
     } : false,
   },
-  // React Compiler configuration (moved from experimental in Next.js 16)
-  reactCompiler: false,
+  // Experimental features for better React 19 support
+  experimental: {
+    reactCompiler: false,
+  },
   // Permanently disable Next.js dev overlay and indicators
   devIndicators: {
     buildActivity: false,

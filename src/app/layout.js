@@ -7,6 +7,7 @@ import { ConfigProvider, App } from "antd";
 import { antdTheme, suppressAntdWarnings } from "../lib/antd-theme";
 import AntdWarningBoundary from "../lib/error-boundary";
 import "../lib/suppress-warnings";
+import AuthSessionProvider from "./components/SessionProvider"; 
 import AutoSubscriptionManager from "./components/AutoSubscriptionManager";
 import RemoveNextJSIndicator from "./components/RemoveNextJSIndicator";
 
@@ -34,6 +35,7 @@ export default function RootLayout({ children }) {
     <html lang="en">
       <head>
         <link rel="icon" href="/logo.jpeg" />
+        <link href="https://cdn.jsdelivr.net/npm/remixicon@4.3.0/fonts/remixicon.css" rel="stylesheet" />
         <script
           dangerouslySetInnerHTML={{
             __html: `
@@ -83,18 +85,20 @@ export default function RootLayout({ children }) {
         />
       </head>
       <body suppressHydrationWarning={true} className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col`}>
-        <AntdWarningBoundary>
-          <ConfigProvider theme={antdTheme}>
-            <App>
-              <AppShell>
-                {children}
-              </AppShell>
-              <AutoSubscriptionManager />
-              <Toaster position="top-right" />
-              <RemoveNextJSIndicator />
-            </App>
-          </ConfigProvider>
-        </AntdWarningBoundary>
+        <AuthSessionProvider>
+          <AntdWarningBoundary>
+            <ConfigProvider theme={antdTheme}>
+              <App>
+                <AppShell>
+                  {children}
+                </AppShell>
+                <AutoSubscriptionManager />
+                <Toaster position="top-right" />
+                <RemoveNextJSIndicator />
+              </App>
+            </ConfigProvider>
+          </AntdWarningBoundary>
+        </AuthSessionProvider>
       </body>
     </html>
   );

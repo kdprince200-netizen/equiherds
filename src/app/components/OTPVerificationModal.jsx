@@ -63,7 +63,7 @@ export default function OTPVerificationModal({ isOpen, onClose, email, onOTPVeri
 
     setIsLoading(true);
     try {
-      const response = await fetch("https://www.equiherds.com/forgot-api/api/auth/verify-otp", {
+      const response = await fetch("https://smtp-blush.vercel.app/api/auth/verify-otp", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -92,7 +92,7 @@ export default function OTPVerificationModal({ isOpen, onClose, email, onOTPVeri
   const handleResend = async () => {
     setIsLoading(true);
     try {
-      const response = await fetch("https://www.equiherds.com/forgot-api/api/auth/forgot-password", {
+      const response = await fetch("https://smtp-blush.vercel.app/api/auth/forgot-password", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

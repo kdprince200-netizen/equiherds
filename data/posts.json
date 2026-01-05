@@ -1,0 +1,41 @@
+{
+  "posts": [
+    {
+      "id": "1767511408086",
+      "userId": "68f28691862fd5968cc62279",
+      "description": "Recusandae Voluptat",
+      "dateTime": "2025-11-16T22:51",
+      "image": "https://lms-api.wiserbee.ca/Upload/Documents/577b77f0-719d-49ad-82bf-e304260dd647.jpeg",
+      "createdAt": "2026-01-04T07:23:28.086Z"
+    },
+    {
+      "id": "1767511644222",
+      "userId": "68f9dbd515fe7e2938460056",
+      "description": "In autem fugiat mag",
+      "dateTime": "1995-09-08T10:31",
+      "image": "https://lms-api.wiserbee.ca/Upload/Documents/08205bfc-374c-4cf5-96a7-7e0ebd68a7d0.jpg",
+      "createdAt": "2026-01-04T07:27:24.223Z"
+    }
+  ],
+  "likes": {
+    "1767511408086": [
+      "68f9dbd515fe7e2938460056"
+    ],
+    "1767511644222": [
+      "68f9dbd515fe7e2938460056"
+    ]
+  },
+  "comments": {
+    "1767511408086": [
+      {
+        "id": "1767511737471",
+        "userId": "68f9dbd515fe7e2938460056",
+        "content": "hi",
+        "username": "John Doe",
+        "avatar": "https://via.placeholder.com/150",
+        "timestamp": "2026-01-04T07:28:57.471Z"
+      }
+    ],
+    "1767511644222": []
+  }
+}

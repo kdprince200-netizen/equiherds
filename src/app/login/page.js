@@ -2,7 +2,6 @@
 
 import { useMemo, useState } from "react";
 import { toast } from "react-hot-toast";
-import Image from "next/image";
 import { postRequest, uploadFile } from "@/service";
 import TopSection from "../components/topSection";
 import OTPModal from "../components/OTPModal";
@@ -87,7 +86,7 @@ export default function LoginPage() {
   // OTP verification functions
   async function sendOTP(email) {
     try {
-      const response = await fetch("https://www.equiherds.com/forgot-api/api/auth/forgot-password", {
+      const response = await fetch("https://smtp-blush.vercel.app/api/auth/forgot-password", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -107,7 +106,7 @@ export default function LoginPage() {
 
   async function verifyOTP(email, otp) {
     try {
-      const response = await fetch("https://www.equiherds.com/forgot-api/api/auth/verify-otp", {
+      const response = await fetch("https://smtp-blush.vercel.app/api/auth/verify-otp", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -458,7 +457,7 @@ export default function LoginPage() {
       {/* Loading Overlay */}
       {(isLoginLoading || isRegisterLoading) && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[9999]">
-          <Image src="/loading.gif" alt="Loading" width={160} height={160} />
+          <img src="/loading.gif" alt="Loading" width={160} height={160} />
         </div>
       )}
       
