@@ -55,6 +55,8 @@ const nextConfig = {
     maxInactiveAge: 25 * 1000,
     pagesBufferLength: 2,
   },
+  // Turbopack configuration to silence build error
+  turbopack: {},
 };
 
 export default nextConfig;
