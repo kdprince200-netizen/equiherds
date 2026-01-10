@@ -1,11 +1,9 @@
 "use client";
 
 import { signIn, getSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
 import { toast } from "react-hot-toast";
 
 export default function GoogleLoginButton({ onSuccess }) {
-  const router = useRouter();
   const handleGoogleLogin = async () => {
     try {
       console.log("Starting Google login...");
@@ -58,7 +56,7 @@ export default function GoogleLoginButton({ onSuccess }) {
                   onSuccess();
                 }
                 // Redirect to profile page
-                router.push("/profile");
+                window.location.href = "/profile";
               } else {
                 toast.error(loginData.message || "Failed to complete login");
               }

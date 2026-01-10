@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import MyProfile from "./MyProfile";
 import Stables from "./Stables";
 import Subscription from "./Subscription";
@@ -21,21 +20,10 @@ import { getUserData } from "../utils/localStorage";
 
 
 export default function ProfilePage() {
-  const router = useRouter();
   const [activeTab, setActiveTab] = useState("profile");
   const [isMounted, setIsMounted] = useState(false);
-  const [userData, setUserData] = useState(null);
-  
-  useEffect(() => {
-    setIsMounted(true);
-    const user = getUserData();
-    setUserData(user);
-    
-    // Redirect to login if not authenticated (only after mount to avoid SSR issues)
-    if (!user || !user.id) {
-      router.push("/login");
-    }
-  }, [router]);
+  useEffect(() => setIsMounted(true), []);
+  const userData = isMounted ? getUserData() : null;
 
   const sellerTabs = [
     { key: "profile", label: "My Profile" },
@@ -88,7 +76,7 @@ export default function ProfilePage() {
         localStorage.removeItem("token");
       }
     } catch {}
-    router.push("/login");
+    window.location.href = "/login";
   };
 
   return (
