@@ -1,11 +1,30 @@
 import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
+import { validateNoCardData, validatePaymentRequest, sanitizeForLogging } from '@/lib/stripe-security';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
 export async function POST(request) {
   try {
-    const { customerId, userId, email, name, metadata = {} } = await request.json();
+    const body = await request.json();
+    
+    // SECURITY: Validate that no card data is in the request
+    try {
+      validateNoCardData(body);
+      validatePaymentRequest(body);
+    } catch (securityError) {
+      console.error('SECURITY VIOLATION:', securityError.message);
+      console.error('Request body (sanitized):', sanitizeForLogging(body));
+      return NextResponse.json(
+        { 
+          error: 'SECURITY_VIOLATION: Credit card data must be collected securely using Stripe Elements on the client side. Card numbers cannot be sent to the server.',
+          code: 'INVALID_REQUEST'
+        },
+        { status: 400 }
+      );
+    }
+
+    const { customerId, userId, email, name, metadata = {} } = body;
     
     console.log('Creating setup intent for customer:', customerId || userId);
     
@@ -68,7 +87,7 @@ export async function POST(request) {
     });
 
     console.log('Setup intent created:', setupIntent.id);
-    console.log('Setup intent metadata:', setupIntent.metadata);
+    console.log('Setup intent metadata:', sanitizeForLogging(setupIntent.metadata));
 
     return NextResponse.json({
       clientSecret: setupIntent.client_secret,

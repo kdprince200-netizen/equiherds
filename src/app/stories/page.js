@@ -1,10 +1,12 @@
 "use client";
 
 import { useState, useEffect, useRef } from 'react';
-import AddStoryModal from '../../../social/components/AddStoryModal';
+import { useRouter } from 'next/navigation';
+import AddStoryModal from '../social/components/AddStoryModal';
 import { getUserData } from '@/app/utils/localStorage';
 
 export default function Stories() {
+  const router = useRouter();
   // Dummy stories that will always be shown
   const dummyStories = [
     {
@@ -100,19 +102,9 @@ export default function Stories() {
   const [selectedStory, setSelectedStory] = useState(null);
   const [comments, setComments] = useState([]);
   const [currentUserId, setCurrentUserId] = useState(null);
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
 
-  // Get current user ID
-  useEffect(() => {
-    const userData = getUserData();
-    const userId = userData?.id || userData?._id;
-    setCurrentUserId(userId);
-  }, []);
-
-  // Fetch stories from API
-  useEffect(() => {
-    fetchStories();
-  }, [currentUserId]);
-
+  // Define fetchStories function before hooks (using useCallback for stability)
   const fetchStories = async () => {
     try {
       setLoading(true);
@@ -175,43 +167,86 @@ export default function Stories() {
     return date.toLocaleDateString();
   };
 
-  const handleCreateStory = async (formData) => {
-    try {
-      const response = await fetch('/api/stories', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Failed to create story');
+  // Define scrollToStory function before hooks (needed by useEffect)
+  const scrollToStory = (index) => {
+    if (isCheckingAuth) return; // Don't scroll if not authenticated
+    const element = document.querySelector(`[data-index="${index}"]`);
+    if (element) {
+      // Pause current video before scrolling
+      if (stories[currentIndex] && stories[currentIndex].type === 'video' && videoRefs.current[currentIndex]) {
+        videoRefs.current[currentIndex].pause();
       }
-
-      // Refresh stories
-      await fetchStories();
-    } catch (error) {
-      console.error('Error creating story:', error);
-      throw error;
+      
+      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      
+      // Ensure video plays after scroll completes
+      setTimeout(() => {
+        if (stories[index] && stories[index].type === 'video' && videoRefs.current[index]) {
+          const video = videoRefs.current[index];
+          video.currentTime = 0;
+          video.play().catch(() => {
+            setIsPlaying(prev => ({ ...prev, [index]: false }));
+          });
+        }
+      }, 500);
     }
   };
 
+  // Check authentication and redirect if not logged in
   useEffect(() => {
+    const checkAuth = () => {
+      try {
+        const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+        if (!token) {
+          router.push('/login');
+          return;
+        }
+        const userData = getUserData();
+        const userId = userData?.id || userData?._id;
+        setCurrentUserId(userId);
+        setIsCheckingAuth(false);
+      } catch (error) {
+        console.error('Error checking auth:', error);
+        router.push('/login');
+      }
+    };
+    checkAuth();
+  }, [router]);
+
+  // Fetch stories from API - MUST be called before any early return
+  useEffect(() => {
+    if (!isCheckingAuth) {
+      fetchStories();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentUserId, isCheckingAuth]);
+
+  // Keyboard navigation - MUST be before early return
+  useEffect(() => {
+    if (isCheckingAuth) return; // Don't set up keyboard handlers if not authenticated
+    
     const handleKeyDown = (e) => {
       if (e.key === 'ArrowDown' && currentIndex < stories.length - 1) {
-        scrollToStory(currentIndex + 1);
+        const element = document.querySelector(`[data-index="${currentIndex + 1}"]`);
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
       } else if (e.key === 'ArrowUp' && currentIndex > 0) {
-        scrollToStory(currentIndex - 1);
+        const element = document.querySelector(`[data-index="${currentIndex - 1}"]`);
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [currentIndex, stories.length]);
+  }, [currentIndex, stories.length, isCheckingAuth]);
 
+  // Intersection Observer for video playback - MUST be before early return
   useEffect(() => {
+    if (isCheckingAuth) return; // Don't set up observer if not authenticated
+    
     // Pause all videos first
     Object.values(videoRefs.current).forEach((video) => {
       if (video) {
@@ -260,10 +295,30 @@ export default function Stories() {
       }
     );
 
-    const storyElements = document.querySelectorAll('.story-item');
-    storyElements.forEach((el) => observer.observe(el));
+    // Only observe if stories are loaded and DOM is ready
+    let timeoutId;
+    if (stories.length > 0 && typeof document !== 'undefined') {
+      // Use setTimeout to ensure DOM is ready
+      timeoutId = setTimeout(() => {
+        const storyElements = document.querySelectorAll('.story-item');
+        if (storyElements.length > 0) {
+          storyElements.forEach((el) => {
+            if (el && el.nodeType === 1) { // Check if it's a valid DOM node
+              try {
+                observer.observe(el);
+              } catch (error) {
+                console.error('Error observing element:', error);
+              }
+            }
+          });
+        }
+      }, 100);
+    }
 
     return () => {
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
       observer.disconnect();
       // Pause all videos on cleanup
       Object.values(videoRefs.current).forEach((video) => {
@@ -272,30 +327,40 @@ export default function Stories() {
         }
       });
     };
-  }, [stories, currentIndex]);
+  }, [stories, currentIndex, isCheckingAuth]);
 
-  const scrollToStory = (index) => {
-    const element = document.querySelector(`[data-index="${index}"]`);
-    if (element) {
-      // Pause current video before scrolling
-      if (stories[currentIndex] && stories[currentIndex].type === 'video' && videoRefs.current[currentIndex]) {
-        videoRefs.current[currentIndex].pause();
+  // Don't render page content if checking auth or not authenticated
+  if (isCheckingAuth) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <div className="text-white">Loading...</div>
+      </div>
+    );
+  }
+
+  const handleCreateStory = async (formData) => {
+    try {
+      const response = await fetch('/api/stories', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to create story');
       }
-      
-      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      
-      // Ensure video plays after scroll completes
-      setTimeout(() => {
-        if (stories[index] && stories[index].type === 'video' && videoRefs.current[index]) {
-          const video = videoRefs.current[index];
-          video.currentTime = 0;
-          video.play().catch(() => {
-            setIsPlaying(prev => ({ ...prev, [index]: false }));
-          });
-        }
-      }, 500);
+
+      // Refresh stories
+      await fetchStories();
+    } catch (error) {
+      console.error('Error creating story:', error);
+      throw error;
     }
   };
+
 
   const handleTouchStart = (e) => {
     touchStartY.current = e.touches[0].clientY;
@@ -585,18 +650,6 @@ export default function Stories() {
                 </div>
                 <span className="text-xs drop-shadow-lg">{story.comments || 0}</span>
               </button>
-              {/* <button className="flex flex-col items-center gap-1 text-white hover:text-white/80 transition-colors cursor-pointer">
-                <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center">
-                  <i className="ri-share-forward-line text-2xl drop-shadow-lg"></i>
-                </div>
-                <span className="text-xs drop-shadow-lg">Share</span>
-              </button> */}
-              {/* <button className="flex flex-col items-center gap-1 text-white hover:text-white/80 transition-colors cursor-pointer">
-                <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center">
-                  <i className="ri-bookmark-line text-2xl drop-shadow-lg"></i>
-                </div>
-                <span className="text-xs drop-shadow-lg">Save</span>
-              </button> */}
               <button 
                 onClick={() => setShowAddStoryModal(true)}
                 className="flex flex-col items-center gap-1 text-white hover:text-white/80 transition-colors cursor-pointer"

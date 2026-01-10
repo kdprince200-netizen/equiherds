@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import connectDB from "@/lib/db";
+import mongoose from "mongoose";
 import User from "@/models/User";
 
 // Timeout configuration (in milliseconds)
@@ -73,14 +74,29 @@ async function parseRequestBody(req) {
 
 export async function POST(req) {
   try {
-    // Connect to database with timeout
-    await withTimeout(
-      async () => {
-        await connectDB();
-      },
-      DB_TIMEOUT,
-      "Database connection"
-    );
+    // Connect to database with timeout and verify connection
+    try {
+      await withTimeout(
+        async () => {
+          await connectDB();
+          // Verify connection is ready before proceeding
+          if (mongoose.connection.readyState !== 1) {
+            throw new Error('Database not ready after connection attempt');
+          }
+        },
+        DB_TIMEOUT,
+        "Database connection"
+      );
+    } catch (dbError) {
+      console.error('Database connection error:', dbError.message);
+      return NextResponse.json(
+        { 
+          message: "Database connection failed. Please try again later.",
+          error: "MongoNotConnectedError"
+        },
+        { status: 503 }
+      );
+    }
 
     // Parse request body
     const body = await parseRequestBody(req);
@@ -94,9 +110,25 @@ export async function POST(req) {
       );
     }
 
+    // Verify connection is still ready before querying
+    if (mongoose.connection.readyState !== 1) {
+      console.error('Database connection lost before query');
+      return NextResponse.json(
+        { 
+          message: "Database connection lost. Please try again.",
+          error: "MongoNotConnectedError"
+        },
+        { status: 503 }
+      );
+    }
+
     // Find user in database with timeout
     const user = await withTimeout(
       async () => {
+        // Double-check connection before query
+        if (mongoose.connection.readyState !== 1) {
+          throw new Error('Database connection not ready');
+        }
         const foundUser = await User.findOne({ email: email.toLowerCase().trim() });
         return foundUser;
       },

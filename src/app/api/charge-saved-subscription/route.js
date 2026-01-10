@@ -3,6 +3,7 @@ import Stripe from "stripe";
 import connectDB from "@/lib/db";
 import User from "@/models/User";
 import { calculateSubscriptionExpiry, getSubscriptionStatus } from "@/app/utils/subscriptionUtils";
+import { validateNoCardData, sanitizeForLogging } from '@/lib/stripe-security';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
@@ -10,6 +11,23 @@ export async function POST(request) {
   let userId; // Declare userId in outer scope for error handling
   try {
     const requestData = await request.json();
+    
+    // SECURITY: Validate that no card data is in the request
+    try {
+      validateNoCardData(requestData);
+    } catch (securityError) {
+      console.error('SECURITY VIOLATION:', securityError.message);
+      console.error('Request body (sanitized):', sanitizeForLogging(requestData));
+      return NextResponse.json(
+        { 
+          success: false,
+          message: 'SECURITY_VIOLATION: Credit card data must be collected securely using Stripe Elements on the client side. Card numbers cannot be sent to the server.',
+          code: 'INVALID_REQUEST'
+        },
+        { status: 400 }
+      );
+    }
+    
     userId = requestData.userId;
 
     if (!userId) {
@@ -189,20 +207,23 @@ export async function POST(request) {
 
     return NextResponse.json({ success: true, paymentIntentId: paymentIntent.id, user });
   } catch (error) {
-    console.error('Error charging saved subscription:', error);
+    console.error('Error charging saved subscription:', error.message || 'Unknown error');
+    // Don't log full error object as it might contain sensitive data
     
     // Clear processing flag on error
     try {
-      const user = await User.findById(userId);
-      if (user) {
-        user.isProcessingPayment = false;
-        await user.save();
+      if (userId) {
+        const user = await User.findById(userId);
+        if (user) {
+          user.isProcessingPayment = false;
+          await user.save();
+        }
       }
     } catch (clearError) {
-      console.error('Error clearing processing flag:', clearError);
+      console.error('Error clearing processing flag:', clearError.message || 'Unknown error');
     }
     
-    return NextResponse.json({ success: false, message: error.message }, { status: 500 });
+    return NextResponse.json({ success: false, message: error.message || 'Failed to charge subscription' }, { status: 500 });
   }
 }
 

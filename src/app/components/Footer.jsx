@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Briefcase, Info, Phone, Newspaper, LogIn } from "lucide-react";
+import { Home, Briefcase, Info, Phone, Newspaper, LogIn, Twitter, Instagram, Facebook } from "lucide-react";
 
 const footerItems = [
   { href: "/", label: "Home", Icon: Home },
@@ -23,6 +23,35 @@ export default function Footer() {
           <div className="space-y-4">
             <Image src="/logo2.png" className="" alt="Logo" width={150} height={150} />
             <p className="opacity-70 leading-relaxed max-w-xs">Building modern herd management experiences with care and technology.</p>
+            <div className="flex items-center gap-4 pt-2">
+              <a 
+                href="https://twitter.com" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-white/80 hover:text-white transition-colors"
+                aria-label="Follow us on Twitter"
+              >
+                <Twitter size={24} />
+              </a>
+              <a 
+                href="https://instagram.com" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-white/80 hover:text-white transition-colors"
+                aria-label="Follow us on Instagram"
+              >
+                <Instagram size={24} />
+              </a>
+              <a 
+                href="https://facebook.com" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-white/80 hover:text-white transition-colors"
+                aria-label="Follow us on Facebook"
+              >
+                <Facebook size={24} />
+              </a>
+            </div>
           </div>
 
           <div>

@@ -233,7 +233,7 @@ export async function GET(req) {
     const { searchParams } = new URL(req.url);
     const id = searchParams.get("id");
     const accountType = searchParams.get("accountType");
-    
+
     if (id) {
       const user = await User.findById(id).select("-password");
       if (!user) {
@@ -244,14 +244,14 @@ export async function GET(req) {
         { status: 200 }
       );
     }
-    
+
     // Build query based on filters
     let query = {};
     if (accountType) {
       query.accountType = accountType;
     }
-    
-    const users = await User.find(query).select("-password");
+
+    const users = await User.find(query).select("-password").limit(100).sort({ createdAt: -1 });
     return NextResponse.json(
       { message: "Users fetched successfully", users },
       { status: 200 }
@@ -269,7 +269,7 @@ export async function POST(req) {
   try {
     const body = await parseRequestBody(req);
     console.log("Received body in API:", body); // Debug log
-    
+
     // If ID is provided, this is an update operation
     if (body.id) {
       const existingUser = await User.findById(body.id);
@@ -279,7 +279,7 @@ export async function POST(req) {
           { status: 404 }
         );
       }
-      
+
       // Update only the provided fields
       const updateData = {};
       if (body.stripeCustomerId !== undefined) updateData.stripeCustomerId = body.stripeCustomerId;
@@ -291,7 +291,7 @@ export async function POST(req) {
       if (body.subscriptionName !== undefined) updateData.subscriptionName = body.subscriptionName;
       if (body.subscriptionPrice !== undefined) updateData.subscriptionPrice = body.subscriptionPrice;
       if (body.subscriptionDuration !== undefined) updateData.subscriptionDuration = body.subscriptionDuration;
-      
+
       // Update the user
       const updatedUser = await User.findByIdAndUpdate(body.id, updateData, { new: true }).select("-password");
       return NextResponse.json(
@@ -299,7 +299,7 @@ export async function POST(req) {
         { status: 200 }
       );
     }
-    
+
     // This is a new user creation - validate required fields
     if (!body.firstName || !body.lastName || !body.email || !body.accountType) {
       return NextResponse.json(
@@ -307,7 +307,7 @@ export async function POST(req) {
         { status: 400 }
       );
     }
-    
+
     // Validate seller-specific fields if account type is seller
     if (body.accountType === 'seller') {
       if (!body.companyName || !body.companyInfo || !body.brandImage || !body.vatNo || !body.stripeAccountId) {
@@ -317,12 +317,12 @@ export async function POST(req) {
         );
       }
     }
-    
+
     // Set default status for new users
     if (!body.status) {
       body.status = 'active';
     }
-    
+
     const user = new User(body);
     await user.save();
     const safeUser = user.toJSON();
@@ -432,7 +432,7 @@ export async function DELETE(req) {
       try {
         const body = await parseRequestBody(req);
         id = body?.id;
-      } catch (_) {}
+      } catch (_) { }
     }
     if (!id) {
       return NextResponse.json({ message: "Missing user id" }, { status: 400 });

@@ -1,21 +1,17 @@
 "use client";
 
-import { useState } from 'react';
-import HomePage from './pages/home/page';
-import CommunityPage from './pages/community/page';
-import StoriesPage from './pages/stories/page';
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 
 export default function SocialPage() {
-  const [activeTab, setActiveTab] = useState('home');
+  const router = useRouter();
 
-  return (
-    <div className="min-h-screen bg-white">
-      {/* Page Content */}
-      {activeTab === 'home' && <HomePage activeTab={activeTab} setActiveTab={setActiveTab} />}
-      {activeTab === 'community' && <CommunityPage activeTab={activeTab} setActiveTab={setActiveTab} />}
-      {activeTab === 'stories' && <StoriesPage activeTab={activeTab} setActiveTab={setActiveTab} />}
-    </div>
-  );
+  useEffect(() => {
+    // Redirect to home page since tabs are now separate routes
+    router.push('/home');
+  }, [router]);
+
+  return null;
 }
 
 

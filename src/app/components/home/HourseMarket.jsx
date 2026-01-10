@@ -12,7 +12,7 @@ const StackedPolaroid = ({
   alt = "",
   width = 285,
   height = 198,
-  intervalMs = 3000,
+  intervalMs = 5000,
   pauseOnHover = true,
 }) => {
   const imageList = Array.isArray(images) && images.length > 0 ? images : (src ? [src] : []);
@@ -33,12 +33,12 @@ const StackedPolaroid = ({
   const currentSrc = imageList.length ? imageList[currentIndex] : src;
 
   return (
-    <div 
+    <div
       className="relative inline-block select-none w-[305px] h-[198px]"
       onMouseEnter={() => pauseOnHover && setIsPaused(true)}
       onMouseLeave={() => pauseOnHover && setIsPaused(false)}
     >
-      <div 
+      <div
         className="absolute bg-white rounded-md w-[305px] h-[198px] border border-gray-200/60 shadow-lg"
         style={{
           left: '-14px',
@@ -47,7 +47,7 @@ const StackedPolaroid = ({
         }}
         aria-hidden
       />
-      <div 
+      <div
         className="absolute bg-white rounded-md w-[305px] h-[198px] border border-gray-200/60 shadow-md"
         style={{
           left: '-8px',
@@ -126,11 +126,11 @@ const Coach = () => {
             images: Array.isArray(h?.photos) && h.photos.length > 0 ? h.photos : [],
             videos: Array.isArray(h?.videos) && h.videos.length > 0 ? h.videos : [],
             media: (() => {
-              const imageMedia = Array.isArray(h?.photos) && h.photos.length > 0 
-                ? h.photos.map(url => ({ type: 'image', url })) 
+              const imageMedia = Array.isArray(h?.photos) && h.photos.length > 0
+                ? h.photos.map(url => ({ type: 'image', url }))
                 : [];
-              const videoMedia = Array.isArray(h?.videos) && h.videos.length > 0 
-                ? h.videos.map(url => ({ type: 'video', url })) 
+              const videoMedia = Array.isArray(h?.videos) && h.videos.length > 0
+                ? h.videos.map(url => ({ type: 'video', url }))
                 : [];
               return [...imageMedia, ...videoMedia];
             })(),
@@ -185,14 +185,14 @@ const Coach = () => {
         // Separate sponsored and non-sponsored
         const sponsored = allHorses.filter(h => h.isSponsored).slice(0, 2);
         const nonSponsored = allHorses.filter(h => !h.isSponsored);
-        
+
         // Sort non-sponsored by rating (descending)
         nonSponsored.sort((a, b) => (b.rating || 0) - (a.rating || 0));
-        
+
         // Combine: first 2 sponsored, then fill remaining slots with highest rated
         const remainingSlots = 4 - sponsored.length;
         const topRated = nonSponsored.slice(0, remainingSlots);
-        
+
         const normalized = [...sponsored, ...topRated].slice(0, 4);
         setHorses(normalized);
       } catch (e) {
@@ -318,7 +318,7 @@ const Coach = () => {
             Newest listings from our horse market—Discover premium horses with detailed information, health records, and verified sellers.
           </p>
         </div>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-12">
           {loading && (
             <div className="col-span-1 md:col-span-2 lg:col-span-4 text-center text-gray-500">Loading...</div>
@@ -339,11 +339,11 @@ const Coach = () => {
               )}
               {/* StackedPolaroid image design - exact match to original */}
               <div className="mb-6 flex justify-center">
-                <StackedPolaroid 
+                <StackedPolaroid
                   images={horse.images}
-                  alt={horse.name} 
-                  width={285} 
-                  height={198} 
+                  alt={horse.name}
+                  width={285}
+                  height={198}
                 />
               </div>
 
@@ -364,8 +364,8 @@ const Coach = () => {
               <div className="mb-3">
                 <span className="text-base font-semibold text-gray-800">€{horse.price.toLocaleString()}</span>
               </div>
-              <Button 
-                onClick={() => openModal(horse)} 
+              <Button
+                onClick={() => openModal(horse)}
                 className="secondary font-medium text-sm transition-colors duration-200 border border-secondary rounded p-2 cursor-pointer"
               >
                 View Details
@@ -375,7 +375,7 @@ const Coach = () => {
         </div>
 
         <div className="text-center">
-          <Button 
+          <Button
             onClick={handleViewAll}
             loading={viewAllLoading}
             type="primary"
@@ -441,7 +441,7 @@ const Coach = () => {
                             onEnded={() => setIsVideoPlaying(false)}
                           />
                           {!isVideoPlaying && (
-                            <div 
+                            <div
                               className="absolute inset-0 flex items-center justify-center bg-black/40 cursor-pointer z-20"
                               onClick={handlePlayVideo}
                             >
@@ -449,9 +449,9 @@ const Coach = () => {
                                 className="w-20 h-20 bg-white/90 hover:bg-white rounded-full flex items-center justify-center shadow-2xl transition-all duration-300 hover:scale-110"
                                 aria-label="Play video"
                               >
-                                <svg 
-                                  className="w-12 h-12 text-secondary ml-1" 
-                                  fill="currentColor" 
+                                <svg
+                                  className="w-12 h-12 text-secondary ml-1"
+                                  fill="currentColor"
                                   viewBox="0 0 24 24"
                                 >
                                   <path d="M8 5v14l11-7z" />
@@ -480,7 +480,7 @@ const Coach = () => {
                         </div>
                       </div>
                     )}
-                    
+
                     {/* Navigation Arrows */}
                     {selectedHorse.media && selectedHorse.media.length > 1 && (
                       <>
@@ -532,11 +532,10 @@ const Coach = () => {
                           <button
                             key={index}
                             onClick={() => selectMedia(index)}
-                            className={`relative flex-shrink-0 w-20 h-16 rounded-lg overflow-hidden border-2 transition-all duration-200 ${
-                              index === currentMediaIndex
+                            className={`relative flex-shrink-0 w-20 h-16 rounded-lg overflow-hidden border-2 transition-all duration-200 ${index === currentMediaIndex
                                 ? 'border-secondary shadow-md scale-105'
                                 : 'border-gray-200 hover:border-gray-300'
-                            }`}
+                              }`}
                           >
                             {item.type === 'video' ? (
                               <>
@@ -703,40 +702,40 @@ const Coach = () => {
                   )}
 
                   {/* Special Features - Only show if at least one feature exists */}
-                  {((selectedHorse.negotiable === true) || 
-                    (selectedHorse.trialAvailable === true) || 
+                  {((selectedHorse.negotiable === true) ||
+                    (selectedHorse.trialAvailable === true) ||
                     (selectedHorse.paymentTerms && selectedHorse.paymentTerms.trim() !== '') ||
                     (selectedHorse.transportAssistance && selectedHorse.transportAssistance.trim() !== '') ||
                     (selectedHorse.ownershipConfirmation === true) ||
                     (selectedHorse.welfareCompliance === true) ||
                     (selectedHorse.liabilityDisclaimer === true)) && (
-                    <div>
-                      <h4 className="text-sm font-semibold text-gray-800 mb-2">Features</h4>
-                      <div className="flex flex-wrap gap-2">
-                        {selectedHorse.negotiable === true && (
-                          <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs">Negotiable</span>
-                        )}
-                        {selectedHorse.trialAvailable === true && (
-                          <span className="px-2 py-1 bg-green-100 text-green-800 rounded text-xs">Trial Available</span>
-                        )}
-                        {selectedHorse.paymentTerms && selectedHorse.paymentTerms.trim() !== '' && (
-                          <span className="px-2 py-1 bg-purple-100 text-purple-800 rounded text-xs">{selectedHorse.paymentTerms}</span>
-                        )}
-                        {selectedHorse.transportAssistance && selectedHorse.transportAssistance.trim() !== '' && (
-                          <span className="px-2 py-1 bg-orange-100 text-orange-800 rounded text-xs">Transport: {selectedHorse.transportAssistance}</span>
-                        )}
-                        {selectedHorse.ownershipConfirmation === true && (
-                          <span className="px-2 py-1 bg-teal-100 text-teal-800 rounded text-xs">Ownership Confirmed</span>
-                        )}
-                        {selectedHorse.welfareCompliance === true && (
-                          <span className="px-2 py-1 bg-emerald-100 text-emerald-800 rounded text-xs">Welfare Compliant</span>
-                        )}
-                        {selectedHorse.liabilityDisclaimer === true && (
-                          <span className="px-2 py-1 bg-indigo-100 text-indigo-800 rounded text-xs">Liability Disclaimer</span>
-                        )}
+                      <div>
+                        <h4 className="text-sm font-semibold text-gray-800 mb-2">Features</h4>
+                        <div className="flex flex-wrap gap-2">
+                          {selectedHorse.negotiable === true && (
+                            <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs">Negotiable</span>
+                          )}
+                          {selectedHorse.trialAvailable === true && (
+                            <span className="px-2 py-1 bg-green-100 text-green-800 rounded text-xs">Trial Available</span>
+                          )}
+                          {selectedHorse.paymentTerms && selectedHorse.paymentTerms.trim() !== '' && (
+                            <span className="px-2 py-1 bg-purple-100 text-purple-800 rounded text-xs">{selectedHorse.paymentTerms}</span>
+                          )}
+                          {selectedHorse.transportAssistance && selectedHorse.transportAssistance.trim() !== '' && (
+                            <span className="px-2 py-1 bg-orange-100 text-orange-800 rounded text-xs">Transport: {selectedHorse.transportAssistance}</span>
+                          )}
+                          {selectedHorse.ownershipConfirmation === true && (
+                            <span className="px-2 py-1 bg-teal-100 text-teal-800 rounded text-xs">Ownership Confirmed</span>
+                          )}
+                          {selectedHorse.welfareCompliance === true && (
+                            <span className="px-2 py-1 bg-emerald-100 text-emerald-800 rounded text-xs">Welfare Compliant</span>
+                          )}
+                          {selectedHorse.liabilityDisclaimer === true && (
+                            <span className="px-2 py-1 bg-indigo-100 text-indigo-800 rounded text-xs">Liability Disclaimer</span>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  )}
+                    )}
 
                   {/* Additional Info */}
                   {(selectedHorse.returnConditions || selectedHorse.contactPreferences || selectedHorse.sellerType) && (
@@ -768,7 +767,7 @@ const Coach = () => {
 
                   <div className="pt-4 border-t border-gray-200">
                     <div className="flex flex-col gap-3">
-                      <Button 
+                      <Button
                         onClick={() => {
                           closeModal();
                           router.push(`/bookingHoursAppointment?horseId=${selectedHorse.id}`);
@@ -779,8 +778,8 @@ const Coach = () => {
                       >
                         Book Appointment
                       </Button>
-                      <Button 
-                        onClick={closeModal} 
+                      <Button
+                        onClick={closeModal}
                         type="default"
                         className="w-full px-6 py-3 border border-gray-300 text-gray-700 rounded-lg transition-colors duration-200 cursor-pointer"
                         block

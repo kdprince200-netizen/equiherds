@@ -1,0 +1,41 @@
+{
+  "stories": [
+    {
+      "id": "1767687519877",
+      "userId": "68f9dbd515fe7e2938460056",
+      "media": "https://lms-api.wiserbee.ca/Upload/Documents/e8ac7821-4b96-4bc7-85df-f930ccd4aab0.jpg",
+      "type": "image",
+      "username": "John Doe",
+      "avatar": "https://lms-api.wiserbee.ca/Upload/Documents/cc8ade76-2cef-4c8a-a98c-a1644e81344b.jpg",
+      "timestamp": "2026-01-06T08:18:39.877Z",
+      "views": 0
+    },
+    {
+      "id": "1767689220285",
+      "userId": "68f9dbd515fe7e2938460056",
+      "media": "https://lms-api.wiserbee.ca/Upload/Videos/52d52d80-4b6b-4d45-bf76-4b6a865d11e5.mp4",
+      "type": "video",
+      "username": "John Doe",
+      "avatar": "https://lms-api.wiserbee.ca/Upload/Documents/cc8ade76-2cef-4c8a-a98c-a1644e81344b.jpg",
+      "timestamp": "2026-01-06T08:47:00.285Z",
+      "views": 0
+    }
+  ],
+  "likes": {
+    "1767687519877": [
+      "68f9dbd515fe7e2938460056"
+    ]
+  },
+  "comments": {
+    "1767687519877": [
+      {
+        "id": "1767689147103",
+        "userId": "68f9dbd515fe7e2938460056",
+        "content": "testing",
+        "username": "John Doe",
+        "avatar": "https://lms-api.wiserbee.ca/Upload/Documents/cc8ade76-2cef-4c8a-a98c-a1644e81344b.jpg",
+        "timestamp": "2026-01-06T08:45:47.103Z"
+      }
+    ]
+  }
+}

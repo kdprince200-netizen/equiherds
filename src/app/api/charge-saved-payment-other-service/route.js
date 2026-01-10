@@ -2,12 +2,31 @@ import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import connectDB from "@/lib/db";
 import BookingOtherService from "@/models/BookingOtherService";
+import { validateNoCardData, sanitizeForLogging } from '@/lib/stripe-security';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
 export async function POST(request) {
   try {
-    const { bookingId } = await request.json();
+    const body = await request.json();
+    
+    // SECURITY: Validate that no card data is in the request
+    try {
+      validateNoCardData(body);
+    } catch (securityError) {
+      console.error('SECURITY VIOLATION:', securityError.message);
+      console.error('Request body (sanitized):', sanitizeForLogging(body));
+      return NextResponse.json(
+        { 
+          success: false,
+          message: 'SECURITY_VIOLATION: Credit card data must be collected securely using Stripe Elements on the client side. Card numbers cannot be sent to the server.',
+          code: 'INVALID_REQUEST'
+        },
+        { status: 400 }
+      );
+    }
+    
+    const { bookingId } = body;
     
     console.log('Charging saved payment method for other service booking:', bookingId);
     
@@ -100,9 +119,10 @@ export async function POST(request) {
       });
     }
   } catch (err) {
-    console.error('Error charging saved other service payment:', err);
+    console.error('Error charging saved other service payment:', err.message || 'Unknown error');
+    // Don't log full error object as it might contain sensitive data
     return NextResponse.json(
-      { success: false, message: err.message },
+      { success: false, message: err.message || 'Failed to charge payment' },
       { status: 500 }
     );
   }

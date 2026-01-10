@@ -4,13 +4,14 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { Home, Briefcase, Info, Phone, Newspaper, LogIn, Menu, X, User, Users, Building, Wrench, CreditCard, ShoppingBag, Store } from "lucide-react";
+import { Home, Briefcase, Info, Phone, Newspaper, LogIn, Menu, X, User, Users, Building, Wrench, CreditCard, ShoppingBag, Store, MessageCircle, Camera } from "lucide-react";
 import { getUserData } from "../utils/localStorage";
 
 const baseNavItems = [
   { href: "/", label: "Home", Icon: Home },
   { href: "/services", label: "Services", Icon: Briefcase },
   { href: "/market", label: "Market", Icon: ShoppingBag },
+  { href: "/social", label: "Social", Icon: Users },
   { href: "/aboutus", label: "About us", Icon: Info },
   { href: "/contactus", label: "Contact us", Icon: Phone },
   { href: "/news", label: "News", Icon: Newspaper },
@@ -22,9 +23,11 @@ export default function Navbar() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [servicesOpen, setServicesOpen] = useState(false);
   const [marketOpen, setMarketOpen] = useState(false);
+  const [socialOpen, setSocialOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const servicesRef = useRef(null);
   const marketRef = useRef(null);
+  const socialRef = useRef(null);
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -66,7 +69,7 @@ export default function Navbar() {
     return () => window.removeEventListener("storage", onStorage);
   }, []);
 
-  // Close Services and Market on outside click / Escape
+  // Close Services, Market, and Social on outside click / Escape
   useEffect(() => {
     function handleClick(event) {
       if (servicesRef.current && !servicesRef.current.contains(event.target)) {
@@ -75,11 +78,15 @@ export default function Navbar() {
       if (marketRef.current && !marketRef.current.contains(event.target)) {
         setMarketOpen(false);
       }
+      if (socialRef.current && !socialRef.current.contains(event.target)) {
+        setSocialOpen(false);
+      }
     }
     function handleKey(event) {
       if (event.key === "Escape") {
         setServicesOpen(false);
         setMarketOpen(false);
+        setSocialOpen(false);
       }
     }
     document.addEventListener("mousedown", handleClick);
@@ -202,6 +209,39 @@ export default function Navbar() {
                   >
                     <Link href="/market?type=horse" className="block px-4 py-2 text-white hover:bg-white/10" onClick={(e) => { setMarketOpen(false); handleNavigation("/market?type=horse", e); }}>Horse Market</Link>
                     <Link href="/market?type=marketplace" className="block px-4 py-2 text-white hover:bg-white/10" onClick={(e) => { setMarketOpen(false); handleNavigation("/market?type=marketplace", e); }}>Market Place</Link>
+                  </div>
+                </div>
+              );
+            }
+            if (label === "Social") {
+              const isSocialActive = pathname === "/community" || pathname === "/stories" || pathname === "/home";
+              return (
+                <div
+                  key={href}
+                  className="relative group"
+                  ref={socialRef}
+                  onMouseEnter={() => setSocialOpen(true)}
+                >
+                  <Link
+                    href={href}
+                    className={`flex items-center gap-2 underline-offset-4 ${
+                      isSocialActive ? "underline text-white" : "text-white hover:underline"
+                    }`}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setSocialOpen((v) => !v);
+                    }}
+                  >
+                    <Icon className="text-white" size={22} />
+                    <span className="text-white font-bold">{label}</span>
+                  </Link>
+                  <div
+                    className={`${socialOpen ? "visible opacity-100" : "invisible opacity-0"} group-hover:visible group-hover:opacity-100 transition-opacity duration-200 absolute left-0 top-full mt-2 min-w-[180px] rounded-md border border-white/10 bg-primary shadow-lg`}
+                    onMouseEnter={() => setSocialOpen(true)}
+                    onMouseLeave={() => setSocialOpen(false)}
+                  >
+                    <Link href="/community" className="block px-4 py-2 text-white hover:bg-white/10" onClick={(e) => { setSocialOpen(false); handleNavigation("/community", e); }}>Community</Link>
+                    <Link href="/stories" className="block px-4 py-2 text-white hover:bg-white/10" onClick={(e) => { setSocialOpen(false); handleNavigation("/stories", e); }}>Stories</Link>
                   </div>
                 </div>
               );
@@ -341,6 +381,33 @@ export default function Navbar() {
                       <Link href="/market?type=marketplace" className="flex items-center gap-2 px-2 py-1 text-white hover:text-white/80 hover:bg-white/10 rounded transition-colors" onClick={(e) => { setOpen(false); handleNavigation("/market?type=marketplace", e); }}>
                         <Store className="text-white" size={16} />
                         Market Place
+                      </Link>
+                    </div>
+                  </div>
+                );
+              }
+              if (label === "Social") {
+                const isSocialActive = pathname === "/community" || pathname === "/stories" || pathname === "/home";
+                return (
+                  <div key={href} className="grid gap-1">
+                    <Link
+                      href={href}
+                      className={`flex items-center gap-3 ${
+                        isSocialActive ? "underline text-white" : "text-white hover:underline"
+                      }`}
+                      onClick={(e) => { setOpen(false); handleNavigation(href, e); }}
+                    >
+                      <Icon className="text-white" size={20} />
+                      <span className="text-white">{label}</span>
+                    </Link>
+                    <div className="ml-7 grid">
+                      <Link href="/community" className="flex items-center gap-2 px-2 py-1 text-white hover:text-white/80 hover:bg-white/10 rounded transition-colors" onClick={(e) => { setOpen(false); handleNavigation("/community", e); }}>
+                        <MessageCircle className="text-white" size={16} />
+                        Community
+                      </Link>
+                      <Link href="/stories" className="flex items-center gap-2 px-2 py-1 text-white hover:text-white/80 hover:bg-white/10 rounded transition-colors" onClick={(e) => { setOpen(false); handleNavigation("/stories", e); }}>
+                        <Camera className="text-white" size={16} />
+                        Stories
                       </Link>
                     </div>
                   </div>

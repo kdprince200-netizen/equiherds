@@ -4,14 +4,21 @@ import { useEffect } from 'react';
 
 export default function RemoveNextJSIndicator() {
   useEffect(() => {
+    let timeoutId = null;
+    let attempts = 0;
+    const MAX_ATTEMPTS = 50; // Safety cap
+
     // Function to remove all Next.js indicators
     const removeIndicators = () => {
+      if (attempts > MAX_ATTEMPTS) return;
+      attempts++;
+
       // Remove by ID
       const idsToRemove = [
         '__next-build-watcher',
         '__next-dev-overlay',
       ];
-      
+
       idsToRemove.forEach(id => {
         const element = document.getElementById(id);
         if (element) {
@@ -54,13 +61,13 @@ export default function RemoveNextJSIndicator() {
         const style = window.getComputedStyle(div);
         const id = div.id || '';
         const className = div.className || '';
-        
+
         if (
-          (id.includes('__next') || id.includes('nextjs') || 
-           className.includes('nextjs') || className.includes('__next')) &&
-          (style.position === 'fixed' && 
-           (style.bottom === '0px' || style.right === '0px' || 
-            style.zIndex === '9999' || style.zIndex === '99999'))
+          (id.includes('__next') || id.includes('nextjs') ||
+            className.includes('nextjs') || className.includes('__next')) &&
+          (style.position === 'fixed' &&
+            (style.bottom === '0px' || style.right === '0px' ||
+              style.zIndex === '9999' || style.zIndex === '99999'))
         ) {
           div.remove();
         }
@@ -75,12 +82,17 @@ export default function RemoveNextJSIndicator() {
       });
     };
 
+    const debouncedRemove = () => {
+      if (timeoutId) clearTimeout(timeoutId);
+      timeoutId = setTimeout(removeIndicators, 500); // 500ms debounce
+    };
+
     // Run immediately
     removeIndicators();
 
     // Set up MutationObserver to catch dynamically added elements
     const observer = new MutationObserver(() => {
-      removeIndicators();
+      debouncedRemove();
     });
 
     observer.observe(document.body, {
@@ -90,12 +102,9 @@ export default function RemoveNextJSIndicator() {
       attributeFilter: ['id', 'class', 'data-nextjs-dialog', 'data-nextjs-toast'],
     });
 
-    // Also run periodically as backup
-    const interval = setInterval(removeIndicators, 100);
-
     return () => {
       observer.disconnect();
-      clearInterval(interval);
+      if (timeoutId) clearTimeout(timeoutId);
     };
   }, []);
 

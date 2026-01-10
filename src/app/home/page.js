@@ -1,12 +1,10 @@
 "use client";
 
 import { useState } from 'react';
-// import Navbar from './components/Navbar';
-import Hero from './components/Hero';
-import StoryBoard from './components/StoryBoard';
-import FeedsSection from './components/FeedsSection';
-// import Footer from './components/Footer';
-import SponsoredSection from '../../components/feature/SponsoredSection';
+import Hero from '../social/pages/home/components/Hero';
+import StoryBoard from '../social/pages/home/components/StoryBoard';
+import FeedsSection from '../social/pages/home/components/FeedsSection';
+import SponsoredSection from '../social/components/feature/SponsoredSection';
 
 export default function HomePage() {
   return (

@@ -1,11 +1,13 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import SponsoredSection from '../../components/feature/SponsoredSection';
-import AddPostModal from '../../components/AddPostModal';
+import { useRouter } from 'next/navigation';
+import SponsoredSection from '../social/components/feature/SponsoredSection';
+import AddPostModal from '../social/components/AddPostModal';
 import { getUserData } from '@/app/utils/localStorage';
 
-const Community = () => {
+export default function Community() {
+  const router = useRouter();
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showAddPostModal, setShowAddPostModal] = useState(false);
@@ -31,19 +33,42 @@ const Community = () => {
     try {
       setLoading(true);
       const response = await fetch('/api/posts');
-      if (!response.ok) throw new Error('Failed to fetch posts');
+      
+      if (!response.ok) {
+        // Try to get error message from response
+        let errorMessage = 'Failed to fetch posts';
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.message || errorMessage;
+        } catch (e) {
+          // If response is not JSON, use status text
+          errorMessage = response.statusText || errorMessage;
+        }
+        console.error('API Error:', response.status, errorMessage);
+        // Set empty posts array instead of throwing
+        setPosts([]);
+        return;
+      }
+      
       const data = await response.json();
+      
+      // Ensure data is an array
+      if (!Array.isArray(data)) {
+        console.error('Invalid response format:', data);
+        setPosts([]);
+        return;
+      }
       
       // Format posts for display
       let formattedPosts = data.map(post => ({
         ...post,
-        content: post.description,
-        timestamp: formatTimestamp(post.dateTime),
-        username: post.user?.name || `User ${post.userId.slice(-6)}`,
+        content: post.description || post.content || '',
+        timestamp: formatTimestamp(post.dateTime || post.createdAt || new Date().toISOString()),
+        username: post.user?.name || `User ${post.userId ? post.userId.slice(-6) : 'Unknown'}`,
         avatar: post.user?.avatar || 'https://readdy.ai/api/search-image?query=default%20user%20avatar%20portrait%20friendly%20smile%20simple%20background&width=120&height=120&seq=default&orientation=squarish',
-        shares: 0, // Not implemented yet
-        isSaved: false, // Not implemented yet
-        isLiked: false, // Default to false
+        shares: post.shares || 0,
+        isSaved: post.isSaved || false,
+        isLiked: post.isLiked || false,
       }));
 
       // Check like status for each post if user is logged in
@@ -55,7 +80,7 @@ const Community = () => {
               const likeData = await likeResponse.json();
               return {
                 ...post,
-                isLiked: likeData.isLiked
+                isLiked: likeData.isLiked || false
               };
             }
           } catch (error) {
@@ -71,6 +96,8 @@ const Community = () => {
       setPosts(formattedPosts);
     } catch (error) {
       console.error('Error fetching posts:', error);
+      // Set empty array on error so UI can show appropriate message
+      setPosts([]);
     } finally {
       setLoading(false);
     }
@@ -245,7 +272,20 @@ const Community = () => {
               {/* Add Post Button */}
               <div className="mb-6">
                 <button
-                  onClick={() => setShowAddPostModal(true)}
+                  onClick={() => {
+                    // Check if user is logged in before showing modal
+                    try {
+                      const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+                      if (!token) {
+                        router.push('/login');
+                        return;
+                      }
+                      setShowAddPostModal(true);
+                    } catch (error) {
+                      console.error('Error checking auth:', error);
+                      router.push('/login');
+                    }
+                  }}
                   className="w-full bg-teal-600 text-white px-6 py-3 rounded-xl font-semibold hover:bg-teal-700 transition-colors flex items-center justify-center gap-2"
                 >
                   <i className="ri-add-line text-xl"></i>
@@ -476,6 +516,5 @@ const Community = () => {
       )}
     </div>
   );
-};
+}
 
-export default Community;

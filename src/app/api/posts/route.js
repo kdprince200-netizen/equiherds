@@ -40,34 +40,72 @@ async function parseBody(req) {
 // GET - Fetch all posts
 export async function GET() {
   try {
-    await connectDB();
-    const data = readData();
+    // Try to connect to DB, but don't fail if it doesn't work
+    try {
+      await connectDB();
+    } catch (dbError) {
+      console.warn('Database connection failed, continuing with file-based storage:', dbError.message);
+    }
+    
+    // Read data from file
+    let data;
+    try {
+      data = readData();
+    } catch (fileError) {
+      console.error('Error reading posts file:', fileError);
+      // Return empty array if file read fails
+      return NextResponse.json([], { status: 200 });
+    }
+    
+    // Ensure data has required structure
+    if (!data || typeof data !== 'object') {
+      data = { posts: [], likes: {}, comments: {} };
+    }
+    if (!Array.isArray(data.posts)) {
+      data.posts = [];
+    }
+    if (!data.likes || typeof data.likes !== 'object') {
+      data.likes = {};
+    }
+    if (!data.comments || typeof data.comments !== 'object') {
+      data.comments = {};
+    }
     
     // Get unique user IDs from posts
-    const userIds = [...new Set(data.posts.map(post => post.userId))];
+    const userIds = [...new Set(data.posts.map(post => post?.userId).filter(Boolean))];
     
-    // Convert userIds to ObjectId if valid, filter out invalid ones
-    const validUserIds = userIds
-      .filter(id => mongoose.Types.ObjectId.isValid(id))
-      .map(id => new mongoose.Types.ObjectId(id));
-    
-    // Fetch all users in one query
-    const users = validUserIds.length > 0 
-      ? await User.find({ _id: { $in: validUserIds } })
-          .select('firstName lastName profilePicture brandImage')
-      : [];
-    
-    // Create a map of userId to user data for quick lookup
-    const userMap = {};
-    users.forEach(user => {
-      userMap[user._id.toString()] = {
-        name: `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'Unknown User',
-        avatar: user.profilePicture || user.brandImage || ''
-      };
-    });
+    // Try to fetch user data if DB is available
+    let userMap = {};
+    if (userIds.length > 0) {
+      try {
+        // Convert userIds to ObjectId if valid, filter out invalid ones
+        const validUserIds = userIds
+          .filter(id => mongoose.Types.ObjectId.isValid(id))
+          .map(id => new mongoose.Types.ObjectId(id));
+        
+        // Fetch all users in one query
+        const users = validUserIds.length > 0 
+          ? await User.find({ _id: { $in: validUserIds } })
+              .select('firstName lastName profilePicture brandImage')
+          : [];
+        
+        // Create a map of userId to user data for quick lookup
+        users.forEach(user => {
+          userMap[user._id.toString()] = {
+            name: `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'Unknown User',
+            avatar: user.profilePicture || user.brandImage || ''
+          };
+        });
+      } catch (userError) {
+        console.warn('Error fetching user data:', userError.message);
+        // Continue without user data
+      }
+    }
     
     // Add likes, comments count, and user details to each post
     const postsWithCounts = data.posts.map((post) => {
+      if (!post || !post.id) return null; // Skip invalid posts
+      
       const postLikes = data.likes[post.id] || [];
       const postComments = data.comments[post.id] || [];
       const userData = userMap[post.userId] || {
@@ -77,25 +115,28 @@ export async function GET() {
       
       return {
         ...post,
-        likes: postLikes.length,
-        comments: postComments.length,
+        likes: Array.isArray(postLikes) ? postLikes.length : 0,
+        comments: Array.isArray(postComments) ? postComments.length : 0,
         isLiked: false, // This will be determined on client side based on userId
         user: {
           name: userData.name,
           avatar: userData.avatar
         }
       };
-    });
+    }).filter(Boolean); // Remove null entries
     
     // Sort by date (newest first)
-    postsWithCounts.sort((a, b) => new Date(b.dateTime) - new Date(a.dateTime));
+    postsWithCounts.sort((a, b) => {
+      const dateA = new Date(a.dateTime || a.createdAt || 0);
+      const dateB = new Date(b.dateTime || b.createdAt || 0);
+      return dateB - dateA;
+    });
+    
     return NextResponse.json(postsWithCounts, { status: 200 });
   } catch (error) {
     console.error('Error fetching posts:', error);
-    return NextResponse.json(
-      { message: error.message || "Failed to fetch posts" },
-      { status: 500 }
-    );
+    // Return empty array instead of error to prevent UI breaking
+    return NextResponse.json([], { status: 200 });
   }
 }
 

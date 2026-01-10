@@ -8,6 +8,7 @@ export default function AppShell({ children }) {
   const pathname = usePathname();
   const isSwagger = pathname === "/swagger";
   const isFerozi = pathname === "/mystore";
+  const isStories = pathname === "/stories";
 
   if (isSwagger || isFerozi) {
     return (
@@ -25,7 +26,7 @@ export default function AppShell({ children }) {
       <main className="flex-1">
         {children}
       </main>
-      <Footer />
+      {!isStories && <Footer />}
     </>
   );
 }

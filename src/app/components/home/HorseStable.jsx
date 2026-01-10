@@ -12,7 +12,7 @@ const StackedPolaroid = ({
   alt = "",
   width = 285,
   height = 198,
-  intervalMs = 3000,
+  intervalMs = 5000,
   pauseOnHover = true,
 }) => {
   const imageList = Array.isArray(images) && images.length > 0 ? images : (src ? [src] : []);
@@ -32,12 +32,12 @@ const StackedPolaroid = ({
   const currentSrc = imageList.length ? imageList[currentIndex] : src;
 
   return (
-    <div 
+    <div
       className="relative inline-block select-none w-[305px] h-[198px]"
       onMouseEnter={() => pauseOnHover && setIsPaused(true)}
       onMouseLeave={() => pauseOnHover && setIsPaused(false)}
     >
-      <div 
+      <div
         className="absolute bg-white rounded-md w-[305px] h-[198px] border border-gray-200/60 shadow-lg"
         style={{
           left: '-14px',
@@ -46,7 +46,7 @@ const StackedPolaroid = ({
         }}
         aria-hidden
       />
-      <div 
+      <div
         className="absolute bg-white rounded-md w-[305px] h-[198px] border border-gray-200/60 shadow-md"
         style={{
           left: '-8px',
@@ -91,7 +91,7 @@ const OurServices = () => {
         setError("");
         let data = await getRequest('/api/stables');
         if (!Array.isArray(data)) data = [];
-        
+
         // Map all stables
         const allStables = data.map((s) => {
           // PriceRate can be an array or object, handle both
@@ -136,14 +136,14 @@ const OurServices = () => {
         // Separate sponsored and non-sponsored
         const sponsored = allStables.filter(s => s.isSponsored).slice(0, 2);
         const nonSponsored = allStables.filter(s => !s.isSponsored);
-        
+
         // Sort non-sponsored by rating (descending)
         nonSponsored.sort((a, b) => (b.rating || 0) - (a.rating || 0));
-        
+
         // Combine: first 2 sponsored, then fill remaining slots with highest rated
         const remainingSlots = 4 - sponsored.length;
         const topRated = nonSponsored.slice(0, remainingSlots);
-        
+
         const mapped = [...sponsored, ...topRated].slice(0, 4);
         setTiles(mapped);
       } catch (e) {
@@ -169,7 +169,7 @@ const OurServices = () => {
 
   const handleBookStable = async () => {
     if (!selectedTile?.id) return;
-    
+
     setBookingLoading(true);
     try {
       // Simulate a small delay for better UX
@@ -269,7 +269,7 @@ const OurServices = () => {
             Discover the finest horse stable experience—Our Expert Trainers, premium horses, and modern facilities for all ages and skill levels.
           </p>
         </div>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-12">
           {loading && (
             <div className="col-span-1 md:col-span-2 lg:col-span-4 text-center text-gray-500">Loading...</div>
@@ -290,11 +290,11 @@ const OurServices = () => {
               )}
               {/* StackedPolaroid image design - exact match to original */}
               <div className="mb-6 flex justify-center">
-                <StackedPolaroid 
+                <StackedPolaroid
                   images={tile.images}
-                  alt={tile.heading} 
-                  width={285} 
-                  height={198} 
+                  alt={tile.heading}
+                  width={285}
+                  height={198}
                 />
               </div>
 
@@ -319,8 +319,8 @@ const OurServices = () => {
                   </div>
                 )}
               </div> */}
-              <Button 
-                onClick={() => openModal(tile)} 
+              <Button
+                onClick={() => openModal(tile)}
                 className="secondary font-medium text-sm transition-colors duration-200 border border-secondary rounded p-2 cursor-pointer"
               >
                 View Details
@@ -330,7 +330,7 @@ const OurServices = () => {
         </div>
 
         <div className="text-center">
-          <Button 
+          <Button
             onClick={handleViewAll}
             loading={viewAllLoading}
             type="primary"
@@ -390,7 +390,7 @@ const OurServices = () => {
                       className="w-full h-full object-cover transition-all duration-300"
                       priority
                     />
-                    
+
                     {/* Navigation Arrows */}
                     {selectedTile.images && selectedTile.images.length > 1 && (
                       <>
@@ -427,11 +427,10 @@ const OurServices = () => {
                           <button
                             key={index}
                             onClick={() => selectImage(index)}
-                            className={`relative flex-shrink-0 w-20 h-16 rounded-lg overflow-hidden border-2 transition-all duration-200 ${
-                              index === currentImageIndex
+                            className={`relative flex-shrink-0 w-20 h-16 rounded-lg overflow-hidden border-2 transition-all duration-200 ${index === currentImageIndex
                                 ? 'border-secondary shadow-md scale-105'
                                 : 'border-gray-200 hover:border-gray-300'
-                            }`}
+                              }`}
                           >
                             <Image
                               src={image}
@@ -457,7 +456,7 @@ const OurServices = () => {
                   <p className="text-gray-600 leading-relaxed">
                     {selectedTile.paragraph}
                   </p>
-                  
+
                   {Array.isArray(selectedTile.slots) && selectedTile.slots.length > 0 && (
                     <div>
                       <h4 className="text-sm font-semibold text-gray-800 mb-3">Available Slots</h4>
@@ -488,7 +487,7 @@ const OurServices = () => {
 
                   <div className="pt-4 border-t border-gray-200">
                     <div className="flex flex-col gap-3">
-                      <Button 
+                      <Button
                         onClick={handleBookStable}
                         type="primary"
                         loading={bookingLoading}
@@ -497,8 +496,8 @@ const OurServices = () => {
                       >
                         Book Stable
                       </Button>
-                      <Button 
-                        onClick={closeModal} 
+                      <Button
+                        onClick={closeModal}
                         type="default"
                         className="w-full px-6 py-3 border border-gray-300 text-gray-700 rounded-lg transition-colors duration-200 cursor-pointer"
                         block
