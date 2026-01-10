@@ -5,8 +5,8 @@ import { getUserData } from "../utils/localStorage";
 import { getRequest, putRequest, uploadFile } from "@/service";
 
 export default function MyProfile() {
-  const tokenData = getUserData();
-  const userId =  tokenData?.id || null;
+  const [userId, setUserId] = useState(null);
+  const [tokenData, setTokenData] = useState(null);
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
@@ -31,6 +31,13 @@ export default function MyProfile() {
 
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
+
+  // Get user data safely after mount
+  useEffect(() => {
+    const userData = getUserData();
+    setTokenData(userData);
+    setUserId(userData?.id || null);
+  }, []);
 
   useEffect(() => {
     let ignore = false;
@@ -75,7 +82,7 @@ export default function MyProfile() {
     return () => {
       ignore = true;
     };
-  }, [userId]);
+  }, [userId, tokenData]);
 
   async function handleImageChange(e) {
     const file = e.target.files && e.target.files[0];

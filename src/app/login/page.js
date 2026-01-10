@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { toast } from "react-hot-toast";
 import { postRequest, uploadFile } from "@/service";
 import TopSection from "../components/topSection";
@@ -12,6 +13,7 @@ import OTPVerificationModal from "../components/OTPVerificationModal";
 import NewPasswordModal from "../components/NewPasswordModal";
 
 export default function LoginPage() {
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState("login");
 
   // Login form state
@@ -149,7 +151,7 @@ export default function LoginPage() {
           }
           setShowOTPModal(false);
           setPendingLoginData(null);
-          window.location.href = "/profile";
+          router.push("/profile");
           return;
         }
       } else {
@@ -325,7 +327,7 @@ export default function LoginPage() {
           localStorage.setItem("token", res.token);
         }
         toast.success(res?.message || "Logged in successfully");
-        window.location.href = "/profile";
+        router.push("/profile");
       } else {
         toast.error(res?.message || "Login failed");
       }
